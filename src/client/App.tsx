@@ -192,24 +192,24 @@ export function App() {
       {/* Semantic Main Content Area */}
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10 bg-slate-50 min-h-screen">
         <div className="max-w-7xl mx-auto wrap">
-          {activeTab === "dashboard" && <AnalyticsDashboardView />}
-          {activeTab === "customers" && (
+          {activeTab === "dashboard" && (currentRole === "admin" ? <AnalyticsDashboardView /> : <FieldTrackingView />)}
+          {activeTab === "customers" && (currentRole === "admin" ? (
             <CustomerAssetsView
               onInspectUnit={(tag) => {
                 setInspectingTag(tag);
                 setActiveTab("unit_detail");
               }}
             />
-          )}
-          {activeTab === "tags" && <BarcodePrintView />}
+          ) : <FieldTrackingView />)}
+          {activeTab === "tags" && (currentRole === "admin" ? <BarcodePrintView /> : <FieldTrackingView />)}
           {activeTab === "schedules" && <ServiceScheduleView />}
           {activeTab === "service_flow" && <FieldTrackingView />}
-          {activeTab === "invoices" && <InvoiceManagementView />}
-          {activeTab === "reminders" && <WhatsAppReminderView />}
+          {activeTab === "invoices" && (currentRole === "admin" ? <InvoiceManagementView /> : <FieldTrackingView />)}
+          {activeTab === "reminders" && (currentRole === "admin" ? <WhatsAppReminderView /> : <FieldTrackingView />)}
           {activeTab === "unit_detail" && (
             <ACUnitDetailView
               assetTag={inspectingTag}
-              onBack={() => setActiveTab("customers")}
+              onBack={() => setActiveTab(currentRole === "admin" ? "customers" : "service_flow")}
             />
           )}
         </div>

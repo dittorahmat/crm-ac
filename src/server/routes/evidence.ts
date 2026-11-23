@@ -1,11 +1,15 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import * as schema from "../db/schema";
+import { requireAuth } from "../middleware/auth";
 
 export const evidenceRouter = new Hono<{
   Bindings: { DB: D1Database; R2: R2Bucket };
   Variables: { db: any; user: any };
 }>();
+
+// Ensure all evidence operations require authenticated session (both admin & technician allowed)
+evidenceRouter.use("*", requireAuth());
 
 // Direct photo evidence upload to R2 conforming strictly to ADR-0003:
 // evidence/{serviceOrderId}/{acUnitId}/{evidenceType}_{timestamp}.webp
