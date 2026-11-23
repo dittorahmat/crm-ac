@@ -8,6 +8,8 @@ Instructions and configuration for AI agents working in this repository.
 - **R2 Storage Patterns**: `evidence/{serviceOrderId}/{acUnitId}/{evidenceType}_{timestamp}.webp` and `invoices/{invoiceNumber}.html`. See `docs/adr/0003-service-evidence-and-asset-tag-printing.md`.
 - **WhatsApp Gateway**: Official Meta Cloud API with Fonnte/Waha resilient fallback. See `docs/adr/0002-whatsapp-adapter-and-fallback.md`.
 - **Auth & RBAC**: Better-Auth with D1 adapter, enforcing `admin` and `technician` roles. See `docs/adr/0004-better-auth-on-cloudflare-d1.md` and `docs/adr/0005-role-based-access-control.md`.
+  - **Fail-Closed RBAC Principle**: Role resolution MUST fail closed (`403 Forbidden` if missing or unverified). Never fall back to default roles (e.g. `user.role || 'technician'`) or mock elevated `admin` privileges in production authentication callbacks.
+  - **Hono Route Protection**: Route middleware protecting sub-resources and mutations must use wildcard patterns (`assetsRouter.use("*", ...)`) or explicit array matching so that parameterized subpaths (e.g. `/customers/:id`) are never left unguarded.
 
 ## Frontend & Design Quality Rules (Clean B2B Standard)
 

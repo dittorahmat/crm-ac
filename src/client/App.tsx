@@ -48,14 +48,13 @@ export function App() {
     return (
       <LoginPage
         onLoginSuccess={(userData) => {
-          const u = userData || {
-            name: "Admin Operasional",
-            email: "admin@koolsync.com",
-            role: "admin",
-          };
-          setUser(u);
+          if (!userData || !userData.role) {
+            console.error("Login attempt with invalid user payload rejected.");
+            return;
+          }
+          setUser(userData);
           // Auto-direct technicians to field operational workflow
-          if (u.role === "technician") {
+          if (userData.role === "technician") {
             setActiveTab("service_flow");
           } else {
             setActiveTab("dashboard");

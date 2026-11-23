@@ -9,30 +9,11 @@ export const assetsRouter = new Hono<{
   Variables: { db: any; user: any };
 }>();
 
-// Protect master data mutations with admin role
-assetsRouter.use("/customers", async (c, next) => {
-  if (c.req.method === "POST" || c.req.method === "PUT" || c.req.method === "DELETE") {
-    return requireRole(["admin"])(c, next);
-  }
-  await next();
-});
-
-assetsRouter.use("/locations", async (c, next) => {
-  if (c.req.method === "POST" || c.req.method === "PUT" || c.req.method === "DELETE") {
-    return requireRole(["admin"])(c, next);
-  }
-  await next();
-});
-
-assetsRouter.use("/zones", async (c, next) => {
-  if (c.req.method === "POST" || c.req.method === "PUT" || c.req.method === "DELETE") {
-    return requireRole(["admin"])(c, next);
-  }
-  await next();
-});
-
-assetsRouter.use("/ac-units", async (c, next) => {
-  if (c.req.method === "POST" || c.req.method === "PUT" || c.req.method === "DELETE") {
+// Protect all master data mutations (root and subpaths) with admin role
+const mutationMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+assetsRouter.use("*", async (c, next) => {
+  if (mutationMethods.has(c.req.method)) {
+    // Only permit mutations if user is admin
     return requireRole(["admin"])(c, next);
   }
   await next();

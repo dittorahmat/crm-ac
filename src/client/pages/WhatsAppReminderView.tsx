@@ -173,7 +173,7 @@ export function WhatsAppReminderView() {
                   <button
                     onClick={() => handleManualSend(r.id)}
                     disabled={sendingId === r.id}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-bold text-xs shadow-md shadow-teal-500/10 transition-all"
+                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-bold text-xs transition-all"
                   >
                     <Send className="w-3.5 h-3.5" />
                     {sendingId === r.id ? "Mengirim..." : "Kirim Pengingat Sekarang"}
