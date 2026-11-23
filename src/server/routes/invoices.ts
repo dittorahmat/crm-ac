@@ -148,3 +148,72 @@ invoicesRouter.post("/invoices/generate", async (c) => {
     status: "SENT",
   }, 201);
 });
+
+// Explicit Email Dispatch Endpoint for an existing invoice
+invoicesRouter.post("/invoices/:id/send-email", async (c) => {
+  const db = c.get("db");
+  const id = c.req.param("id");
+
+  const [row] = await db
+    .select({
+      invoice: schema.invoices,
+      customer: schema.customers,
+    })
+    .from(schema.invoices)
+    .leftJoin(schema.customers, eq(schema.invoices.customerId, schema.customers.id))
+    .where(eq(schema.invoices.id, id))
+    .all();
+
+  if (!row) return c.json({ error: "Invoice not found" }, 404);
+
+  const recipientEmail = row.customer?.picEmail;
+  if (!recipientEmail) {
+    return c.json({ error: "Customer does not have an email address" }, 400);
+  }
+
+  // Get Resend API Key from systemSettings or Worker env
+  const [settingRow] = await db
+    .select()
+    .from(schema.systemSettings)
+    .where(eq(schema.systemSettings.key, "resend_api_key"))
+    .all();
+
+  const resendApiKey = (settingRow && settingRow.value) || c.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    return c.json({ error: "Resend API key not configured" }, 400);
+  }
+
+  try {
+    const emailResp = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: "KoolSync Invoicing <billing@koolsync.com>",
+        to: [recipientEmail],
+        subject: `Faktur Tagihan Servis AC #${row.invoice.invoiceNumber} - ${row.customer?.name}`,
+        html: `
+          <h3>Halo ${row.customer?.picName},</h3>
+          <p>Faktur tagihan servis AC <strong>#${row.invoice.invoiceNumber}</strong> sebesar <strong>Rp ${row.invoice.totalAmount.toLocaleString("id-ID")}</strong> siap untuk diproses.</p>
+          <p><a href="https://crm-ac.tech1solusi.workers.dev${row.invoice.pdfUrl}">Buka Lembar Faktur #${row.invoice.invoiceNumber}</a></p>
+          <p>Jatuh tempo pembayaran: ${new Date(row.invoice.dueDate).toLocaleDateString("id-ID")}</p>
+        `,
+      }),
+    });
+
+    const data = await emailResp.json();
+    if (emailResp.ok) {
+      await db
+        .update(schema.invoices)
+        .set({ status: "SENT", sentAt: new Date() })
+        .where(eq(schema.invoices.id, id));
+      return c.json({ success: true, data });
+    } else {
+      return c.json({ success: false, error: JSON.stringify(data) }, 502);
+    }
+  } catch (err: any) {
+    return c.json({ success: false, error: err.message }, 500);
+  }
+});

@@ -72,16 +72,28 @@ export function InvoiceManagementView() {
     fetchInvoices();
   }, []);
 
-  const handleSendEmail = (id: string) => {
+  const handleSendEmail = async (id: string) => {
     setEmailSending(id);
-    setTimeout(() => {
-      setInvoices((prev) =>
-        prev.map((inv) =>
-          inv.id === id ? { ...inv, status: "SENT", sentAt: "Baru Saja" } : inv
-        )
-      );
+    try {
+      const res = await fetch(`/api/invoices/${id}/send-email`, {
+        method: "POST",
+      });
+      const data = (await res.json()) as any;
+      if (res.ok) {
+        setInvoices((prev) =>
+          prev.map((inv) =>
+            inv.id === id ? { ...inv, status: "SENT", sentAt: "Baru Saja" } : inv
+          )
+        );
+      } else {
+        alert(data.error || "Gagal mengirim email faktur. Pastikan Resend API Key sudah diatur di Pengaturan Gateway.");
+      }
+    } catch (err: any) {
+      console.error("Failed to send invoice email:", err);
+      alert("Terjadi kesalahan jaringan saat mengirim email.");
+    } finally {
       setEmailSending(null);
-    }, 1200);
+    }
   };
 
   return (

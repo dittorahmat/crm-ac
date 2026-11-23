@@ -9,6 +9,7 @@ import { assetsRouter } from "./routes/assets";
 import { ordersRouter } from "./routes/orders";
 import { evidenceRouter } from "./routes/evidence";
 import { invoicesRouter } from "./routes/invoices";
+import { settingsRouter } from "./routes/settings";
 import { ResilientWhatsAppService } from "./services/whatsapp";
 
 type Bindings = {
@@ -81,6 +82,7 @@ app.route("/api", assetsRouter);
 app.route("/api", ordersRouter);
 app.route("/api", evidenceRouter);
 app.route("/api", invoicesRouter);
+app.route("/api", settingsRouter);
 
 // R2 Storage object server
 app.get("/api/storage/*", async (c) => {

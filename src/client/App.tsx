@@ -8,6 +8,7 @@ import { InvoiceManagementView } from "./pages/InvoiceManagementView";
 import { WhatsAppReminderView } from "./pages/WhatsAppReminderView";
 import { AnalyticsDashboardView } from "./pages/AnalyticsDashboardView";
 import { ACUnitDetailView } from "./pages/ACUnitDetailView";
+import { SystemSettingsView } from "./pages/SystemSettingsView";
 import { 
   Building2, 
   QrCode, 
@@ -16,6 +17,7 @@ import {
   FileText, 
   Bell, 
   BarChart3, 
+  Settings,
   LogOut,
   User,
   Menu,
@@ -27,7 +29,7 @@ import {
 
 export function App() {
   const [activeTab, setActiveTab] = useState<
-    "dashboard" | "customers" | "tags" | "schedules" | "service_flow" | "invoices" | "reminders" | "unit_detail"
+    "dashboard" | "customers" | "tags" | "schedules" | "service_flow" | "invoices" | "reminders" | "unit_detail" | "settings"
   >("dashboard");
   const [inspectingTag, setInspectingTag] = useState<string>("AC-MSF-SRV-01");
   const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
@@ -73,6 +75,7 @@ export function App() {
     { id: "service_flow", label: "Tracking Lapangan (Real-time)", icon: ClipboardCheck, roles: ["admin", "technician"] },
     { id: "invoices", label: "Faktur & Tagihan PDF", icon: FileText, roles: ["admin"] },
     { id: "reminders", label: "Otomasi WhatsApp (3-6 Bulan)", icon: Bell, roles: ["admin"] },
+    { id: "settings", label: "Pengaturan Gateway", icon: Settings, roles: ["admin"] },
   ] as const;
 
   const currentRole = user.role === "technician" ? "technician" : "admin";
@@ -205,6 +208,7 @@ export function App() {
           {activeTab === "service_flow" && <FieldTrackingView />}
           {activeTab === "invoices" && (currentRole === "admin" ? <InvoiceManagementView /> : <FieldTrackingView />)}
           {activeTab === "reminders" && (currentRole === "admin" ? <WhatsAppReminderView /> : <FieldTrackingView />)}
+          {activeTab === "settings" && (currentRole === "admin" ? <SystemSettingsView /> : <FieldTrackingView />)}
           {activeTab === "unit_detail" && (
             <ACUnitDetailView
               assetTag={inspectingTag}

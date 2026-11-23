@@ -189,3 +189,13 @@ export const whatsappLogs = sqliteTable("whatsapp_logs", {
   errorMessage: text("error_message"),
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
 });
+
+// ==========================================
+// 6. System Settings & Gateway Configurations
+// ==========================================
+export const systemSettings = sqliteTable("system_settings", {
+  key: text("key").primaryKey(), // e.g. "meta_wa_token", "fonnte_token", "resend_api_key"
+  value: text("value").notNull(),
+  description: text("description"),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});
