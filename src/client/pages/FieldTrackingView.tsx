@@ -169,7 +169,12 @@ export function FieldTrackingView() {
     setSyncStatus("Merekam tanda tangan...");
     try {
       const canvas = canvasRef.current;
-      const signatureDataUrl = canvas ? canvas.toDataURL("image/png") : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+      if (!canvas) {
+        alert("Mohon goreskan tanda tangan PIC terlebih dahulu.");
+        setSubmittingFinal(false);
+        return;
+      }
+      const signatureDataUrl = canvas.toDataURL("image/png");
 
       const res = await fetch(`/api/orders/${serviceOrderId}/complete`, {
         method: "POST",
