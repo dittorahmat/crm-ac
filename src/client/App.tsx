@@ -1,5 +1,12 @@
 import React, { useState } from "react";
 import { LoginPage } from "./pages/LoginPage";
+import { CustomerAssetsView } from "./pages/CustomerAssetsView";
+import { BarcodePrintView } from "./pages/BarcodePrintView";
+import { ServiceScheduleView } from "./pages/ServiceScheduleView";
+import { FieldTrackingView } from "./pages/FieldTrackingView";
+import { InvoiceManagementView } from "./pages/InvoiceManagementView";
+import { WhatsAppReminderView } from "./pages/WhatsAppReminderView";
+import { AnalyticsDashboardView } from "./pages/AnalyticsDashboardView";
 import { 
   Wrench, 
   Building2, 
@@ -16,7 +23,6 @@ import {
 } from "lucide-react";
 
 export function App() {
-  // Navigation active tab
   const [activeTab, setActiveTab] = useState<
     "dashboard" | "customers" | "tags" | "schedules" | "service_flow" | "invoices" | "reminders"
   >("dashboard");
@@ -140,65 +146,13 @@ export function App() {
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-950 min-h-screen">
         <div className="max-w-7xl mx-auto">
-          {activeTab === "dashboard" && (
-            <div className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white">
-                    Ringkasan Operasional & Pendapatan
-                  </h2>
-                  <p className="text-xs md:text-sm text-slate-400">
-                    Monitoring kinerja teknisi lapangan dan arus pendapatan servis AC B2B
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Cloudflare Edge Real-time
-                  </span>
-                </div>
-              </div>
-
-              {/* Stats KPI Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800">
-                  <span className="text-xs font-medium text-slate-400">Total Unit AC Terdata</span>
-                  <div className="text-2xl font-bold text-white mt-1">148 Unit</div>
-                  <span className="text-[11px] text-teal-400 mt-2 block">12 Kantor B2B Terdaftar</span>
-                </div>
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800">
-                  <span className="text-xs font-medium text-slate-400">Jadwal Servis Bulan Ini</span>
-                  <div className="text-2xl font-bold text-teal-400 mt-1">42 Order</div>
-                  <span className="text-[11px] text-slate-400 mt-2 block">36 Selesai • 6 Dalam Proses</span>
-                </div>
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800">
-                  <span className="text-xs font-medium text-slate-400">Pendapatan Bulan Berjalan</span>
-                  <div className="text-2xl font-bold text-white mt-1">Rp 28.450.000</div>
-                  <span className="text-[11px] text-emerald-400 mt-2 block">↑ 14% dari bulan lalu</span>
-                </div>
-                <div className="p-5 rounded-2xl bg-slate-900 border border-slate-800">
-                  <span className="text-xs font-medium text-slate-400">Reminder WA Otomatis</span>
-                  <div className="text-2xl font-bold text-teal-400 mt-1">29 Terkirim</div>
-                  <span className="text-[11px] text-slate-400 mt-2 block">94% Tingkat Konfirmasi Servis</span>
-                </div>
-              </div>
-
-              {/* Notice */}
-              <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80">
-                <h3 className="text-sm font-semibold text-slate-200 mb-2">Arsitektur Siap Beroperasi</h3>
-                <p className="text-xs text-slate-400 leading-relaxed">
-                  Semua modul tracer-bullet (Hirarki Aset B2B, Generator Barcode Tom & Jerry, Tracking Lapangan + Foto R2, Faktur PDF Email, dan WhatsApp Reminder Cron) siap diakses melalui menu navigasi samping.
-                </p>
-              </div>
-            </div>
-          )}
-
-          {activeTab !== "dashboard" && (
-            <div className="p-8 rounded-2xl bg-slate-900 border border-slate-800 text-center">
-              <h3 className="text-lg font-bold text-white capitalize">{activeTab.replace("_", " ")}</h3>
-              <p className="text-xs text-slate-400 mt-2">Komponen terhubung ke backend Hono & Drizzle D1.</p>
-            </div>
-          )}
+          {activeTab === "dashboard" && <AnalyticsDashboardView />}
+          {activeTab === "customers" && <CustomerAssetsView />}
+          {activeTab === "tags" && <BarcodePrintView />}
+          {activeTab === "schedules" && <ServiceScheduleView />}
+          {activeTab === "service_flow" && <FieldTrackingView />}
+          {activeTab === "invoices" && <InvoiceManagementView />}
+          {activeTab === "reminders" && <WhatsAppReminderView />}
         </div>
       </main>
     </div>
