@@ -38,6 +38,13 @@ function checkServerSecurity(dir: string, violations: string[]) {
             `${fullPath}:${lineNum + 1} - Found fail-open role fallback: role resolution must fail closed (403 Forbidden).`
           );
         }
+
+        // Prevent un-abstracted raw Resend fetch calls in routes/controllers
+        if (line.includes("https://api.resend.com/emails") && !fullPath.includes(path.join("services", "email.ts"))) {
+          violations.push(
+            `${fullPath}:${lineNum + 1} - Direct fetch to Resend API is banned. Use 'sendTransactionalEmail' from services/email.`
+          );
+        }
       });
     }
   }
@@ -76,7 +83,7 @@ function checkFrontendIntegrity(dir: string, violations: string[]) {
         }
       });
 
-      // Semantic check: Major views in pages/ must contain at least one <section tag
+      // Semantic check: Major views in pages/ must contain semantic <section> tag
       if (fullPath.includes(path.join("pages")) && entry.name.endsWith("View.tsx")) {
         if (!content.includes("<section")) {
           violations.push(
