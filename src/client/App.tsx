@@ -7,6 +7,7 @@ import { FieldTrackingView } from "./pages/FieldTrackingView";
 import { InvoiceManagementView } from "./pages/InvoiceManagementView";
 import { WhatsAppReminderView } from "./pages/WhatsAppReminderView";
 import { AnalyticsDashboardView } from "./pages/AnalyticsDashboardView";
+import { ACUnitDetailView } from "./pages/ACUnitDetailView";
 import { 
   Wrench, 
   Building2, 
@@ -19,19 +20,33 @@ import {
   LogOut,
   User,
   Menu,
-  X
+  X,
+  ShieldAlert
 } from "lucide-react";
 
 export function App() {
   const [activeTab, setActiveTab] = useState<
-    "dashboard" | "customers" | "tags" | "schedules" | "service_flow" | "invoices" | "reminders"
+    "dashboard" | "customers" | "tags" | "schedules" | "service_flow" | "invoices" | "reminders" | "unit_detail"
   >("dashboard");
+  const [inspectingTag, setInspectingTag] = useState<string>("AC-MSF-SRV-01");
   const [user, setUser] = useState<{ name: string; email: string; role: string } | null>({
     name: "Admin Operasional",
     email: "admin@koolsync.com",
     role: "admin",
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Check if current URL is directly scanning an AC barcode e.g. /ac/AC-MSF-SRV-01
+  React.useEffect(() => {
+    const path = window.location.pathname;
+    if (path.startsWith("/ac/")) {
+      const tag = decodeURIComponent(path.replace("/ac/", ""));
+      if (tag) {
+        setInspectingTag(tag);
+        setActiveTab("unit_detail");
+      }
+    }
+  }, []);
 
   if (!user) {
     return (
@@ -131,6 +146,20 @@ export function App() {
           })}
         </nav>
 
+        {/* Bottom Barcode Quick Scan Action */}
+        <div className="p-3 mx-3 mb-3 bg-teal-950/30 border border-teal-500/30 rounded-xl">
+          <button
+            onClick={() => {
+              setInspectingTag("AC-MSF-SRV-01");
+              setActiveTab("unit_detail");
+            }}
+            className="w-full flex items-center gap-2 text-xs font-bold text-teal-300 hover:text-teal-200 transition-colors"
+          >
+            <QrCode className="w-4 h-4 text-teal-400" />
+            <span>Simulasi Scan Barcode AC</span>
+          </button>
+        </div>
+
         {/* Bottom Logout */}
         <div className="p-3 border-t border-slate-800">
           <button
@@ -147,12 +176,28 @@ export function App() {
       <main className="flex-1 overflow-y-auto p-4 md:p-8 bg-slate-950 min-h-screen">
         <div className="max-w-7xl mx-auto">
           {activeTab === "dashboard" && <AnalyticsDashboardView />}
-          {activeTab === "customers" && <CustomerAssetsView />}
+          {activeTab === "customers" && (
+            <CustomerAssetsView
+              onInspectUnit={(tag) => {
+                setInspectingTag(tag);
+                setActiveTab("unit_detail");
+              }}
+            />
+          )}
           {activeTab === "tags" && <BarcodePrintView />}
           {activeTab === "schedules" && <ServiceScheduleView />}
           {activeTab === "service_flow" && <FieldTrackingView />}
           {activeTab === "invoices" && <InvoiceManagementView />}
           {activeTab === "reminders" && <WhatsAppReminderView />}
+          {activeTab === "unit_detail" && (
+            <ACUnitDetailView
+              assetTag={inspectingTag}
+              onBack={() => setActiveTab("customers")}
+              onScheduleService={(tag) => {
+                setActiveTab("schedules");
+              }}
+            />
+          )}
         </div>
       </main>
     </div>

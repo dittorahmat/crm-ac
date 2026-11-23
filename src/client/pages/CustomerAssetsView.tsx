@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Building2, MapPin, Layers, Cpu, Plus, CheckCircle2, ChevronRight, Hash } from "lucide-react";
+import { Building2, MapPin, Layers, Cpu, Plus, CheckCircle2, ChevronRight, Hash, Eye, QrCode } from "lucide-react";
 
 interface Customer {
   id: string;
@@ -22,11 +22,12 @@ interface ACUnit {
   refrigerantType: string;
   serviceIntervalMonths: number;
   status: string;
+  lastHealthScore?: number;
+  lastServiceDate?: string;
 }
 
-export function CustomerAssetsView() {
-  // Sample enterprise customers
-  const [customers, setCustomers] = useState<Customer[]>([
+export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: string) => void }) {
+  const [customers] = useState<Customer[]>([
     {
       id: "cust_1",
       name: "PT. Mega Solusi Finansial",
@@ -42,6 +43,14 @@ export function CustomerAssetsView() {
       picPhone: "081399887766",
       picEmail: "ga@digitalniaga.id",
       defaultServiceIntervalMonths: 3,
+    },
+    {
+      id: "cust_3",
+      name: "PT. Surya Teknologi Global",
+      picName: "Bpk. Hendra Gunawan",
+      picPhone: "081912345678",
+      picEmail: "finance@suryatekno.com",
+      defaultServiceIntervalMonths: 2,
     },
   ]);
 
@@ -61,19 +70,38 @@ export function CustomerAssetsView() {
       refrigerantType: "R32",
       serviceIntervalMonths: 1, // Server room needs monthly maintenance
       status: "active",
+      lastHealthScore: 96,
+      lastServiceDate: "23 Okt 2026",
     },
     {
       id: "ac_2",
       customerId: "cust_1",
       locationId: "loc_1",
       zoneId: "zone_2",
-      assetTag: "AC-MSF-LOB-02",
+      assetTag: "AC-MSF-WRK-02",
+      brand: "Panasonic Inverter",
+      modelNumber: "CS-XU18XKP",
+      capacityPk: 2.0,
+      refrigerantType: "R32",
+      serviceIntervalMonths: 3,
+      status: "active",
+      lastHealthScore: 92,
+      lastServiceDate: "10 Sep 2026",
+    },
+    {
+      id: "ac_3",
+      customerId: "cust_1",
+      locationId: "loc_1",
+      zoneId: "zone_3",
+      assetTag: "AC-MSF-LOB-03",
       brand: "Panasonic Cassette",
       modelNumber: "S-24PU2H5",
       capacityPk: 3.0,
       refrigerantType: "R410A",
       serviceIntervalMonths: 3,
       status: "active",
+      lastHealthScore: 94,
+      lastServiceDate: "15 Agu 2026",
     },
   ]);
 
@@ -101,6 +129,8 @@ export function CustomerAssetsView() {
       refrigerantType: "R32",
       serviceIntervalMonths: parseInt(newInterval),
       status: "active",
+      lastHealthScore: 100,
+      lastServiceDate: "Baru Diinstal",
     };
 
     setUnits([newUnit, ...units]);
@@ -118,7 +148,7 @@ export function CustomerAssetsView() {
             Manajemen Klien & Aset AC B2B
           </h2>
           <p className="text-xs md:text-sm text-slate-400">
-            Kelola hierarki Customer (PT) ➔ Gedung (Location) ➔ Ruangan (Zone) ➔ Unit AC Fisik
+            Identitas Barcode AC menyimpan klien, lokasi gedung, spesifikasi teknis, kondisi terkini, dan riwayat servis.
           </p>
         </div>
         <button
@@ -163,7 +193,7 @@ export function CustomerAssetsView() {
                 <div className="mt-2 text-xs text-slate-400 space-y-1">
                   <p>PIC: <span className="text-slate-300">{c.picName}</span> ({c.picPhone})</p>
                   <p>Email: <span className="text-slate-300">{c.picEmail}</span></p>
-                  <p className="text-[11px] text-teal-400">Siklus Servis Default: {c.defaultServiceIntervalMonths} Bulan</p>
+                  <p className="text-[11px] text-teal-400">Siklus Servis: {c.defaultServiceIntervalMonths} Bulan</p>
                 </div>
               </div>
             ))}
@@ -181,7 +211,7 @@ export function CustomerAssetsView() {
                 </span>
               </h3>
               <p className="text-xs text-slate-400 mt-0.5">
-                Lokasi: Gedung Wisma Sudirman Lt. 8 & 9, Jakarta Pusat
+                Lokasi: Gedung Wisma Sudirman Lt. 2 & 8, Jakarta Pusat
               </p>
             </div>
           </div>
@@ -207,18 +237,26 @@ export function CustomerAssetsView() {
                     <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-slate-400">
                       <span>Kapasitas: <strong className="text-slate-300">{unit.capacityPk} PK</strong></span>
                       <span>Freon: <strong className="text-slate-300">{unit.refrigerantType}</strong></span>
-                      <span>Model: <span className="text-slate-300">{unit.modelNumber}</span></span>
+                      <span>Servis Terakhir: <strong className="text-slate-300">{unit.lastServiceDate}</strong></span>
                     </div>
                   </div>
                 </div>
 
                 <div className="flex items-center gap-3 self-end sm:self-center">
-                  <div className="text-right">
+                  <div className="text-right hidden sm:block">
                     <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                      Rutin Tiap {unit.serviceIntervalMonths} Bln
+                      Kondisi: {unit.lastHealthScore}% Prima
                     </span>
-                    <p className="text-[10px] text-slate-500 mt-1">Status: Siap Servis</p>
+                    <p className="text-[10px] text-slate-500 mt-1">Siklus: Tiap {unit.serviceIntervalMonths} Bln</p>
                   </div>
+
+                  <button
+                    onClick={() => onInspectUnit && onInspectUnit(unit.assetTag)}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-500/10 hover:bg-teal-500/20 border border-teal-500/30 text-teal-300 text-xs font-bold transition-all"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    Buka Riwayat
+                  </button>
                 </div>
               </div>
             ))}
