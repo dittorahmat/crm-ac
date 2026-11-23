@@ -30,11 +30,7 @@ export function App() {
     "dashboard" | "customers" | "tags" | "schedules" | "service_flow" | "invoices" | "reminders" | "unit_detail"
   >("dashboard");
   const [inspectingTag, setInspectingTag] = useState<string>("AC-MSF-SRV-01");
-  const [user, setUser] = useState<{ name: string; email: string; role: string } | null>({
-    name: "Admin Operasional",
-    email: "admin@koolsync.com",
-    role: "admin",
-  });
+  const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -51,12 +47,14 @@ export function App() {
   if (!user) {
     return (
       <LoginPage
-        onLoginSuccess={() =>
-          setUser({
-            name: "Admin Operasional",
-            email: "admin@koolsync.com",
-            role: "admin",
-          })
+        onLoginSuccess={(userData) =>
+          setUser(
+            userData || {
+              name: "Admin Operasional",
+              email: "admin@koolsync.com",
+              role: "admin",
+            }
+          )
         }
       />
     );
