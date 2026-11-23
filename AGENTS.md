@@ -12,10 +12,13 @@ Instructions and configuration for AI agents working in this repository.
 ## Frontend & Design Quality Rules (Clean B2B Standard)
 
 Whenever creating, restyling, or extending frontend components, agents MUST follow the anti-slop principles documented in `.agents/skills/design-taste-frontend/SKILL.md`:
-1. **Clean B2B Field Service Standard**: Avoid dark-cyberpunk neon tropes (`#06090e`, neon cyan `#06b6d4`, heavy glows). Use the industry-standard clean light mode: canvas (`bg-slate-50`), white surface cards (`bg-white border-slate-200 shadow-sm`), slate text (`text-slate-900` / `text-slate-600`), and classic enterprise blue accents (`bg-blue-600 hover:bg-blue-700 text-white`). Keep tactile micro-interactions (`interactive-card` lifts 2px with subtle drop-shadow).
-2. **Real Visuals Only**: Use authentic, high-resolution commercial HVAC equipment photography and real product assets—never empty ground or generic placeholder icons alone.
-3. **Semantic HTML Structure**: Every major view must use valid `<main>` and `<section>` tags inside a `.wrap` container with equal outer gutters.
-4. **Physical Label Printing**: Die-cut sticker sheets (Tom & Jerry #108 / #103) strictly require `@page { size: A4; margin: 0 !important; }` and zero body padding in print media to ensure exact physical alignment.
+1. **Clean B2B Field Service Standard**: Avoid dark-cyberpunk neon tropes (`#06090e`, `#0b111c`, neon cyan `#06b6d4`, heavy glows). Use the industry-standard clean light mode across ALL views: canvas (`bg-slate-50`), white surface cards (`bg-white border-slate-200 shadow-sm`), slate text (`text-slate-900` / `text-slate-600`), and classic enterprise blue accents (`bg-blue-600 hover:bg-blue-700 text-white`). Keep tactile micro-interactions (`interactive-card` lifts 2px with subtle drop-shadow). Never leave partial views dark while others are light.
+2. **Tailwind v3 Compliance**: The project runs Tailwind CSS v3. Do NOT use non-existent Tailwind v4 classes such as `shadow-xs` (use `shadow-sm` or `shadow`), `backdrop-blur-xs` (use `backdrop-blur-sm`), or unconfigured utility classes.
+3. **Operational State Fidelity**: Preserve real-time operational visual indicators such as `animate-pulse` on active server/cloud/device status indicators.
+4. **Real Visuals Only**: Use authentic, high-resolution commercial HVAC equipment photography and real product assets—never empty ground or generic placeholder icons alone.
+5. **Semantic HTML Structure**: Every major view must use valid `<main>` and `<section>` tags inside a `.wrap` container with equal outer gutters. Do not use unsemantic top-level `<div>` wraps for full-page views.
+6. **Domain Vocabulary Compliance**: Respect canonical domain terms from `GLOSSARY.md` (e.g. use `Zone` or `Ruang`, avoid `Area` or `Compartment`; use `Customer` never `Client`/`Klien`; `ACUnit` never `Device`; `ServiceOrder` never `Task`).
+7. **Physical Label Printing**: Die-cut sticker sheets (Tom & Jerry #108 / #103) strictly require `@page { size: A4; margin: 0 !important; }` and zero body padding in print media to ensure exact physical alignment.
 
 ## Guardrails & Verification Suite
 

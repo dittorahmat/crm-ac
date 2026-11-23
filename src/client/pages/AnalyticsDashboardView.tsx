@@ -71,10 +71,10 @@ export function AnalyticsDashboardView() {
             </p>
           </div>
 
-          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shrink-0 space-y-2 shadow-xs">
+          <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 shrink-0 space-y-2 shadow-sm">
             <span className="text-[10px] uppercase font-bold tracking-wider text-slate-500 block">Status Operasi Cloudflare</span>
             <div className="flex items-center gap-2 text-xs font-semibold text-emerald-700">
-              <span className="w-2 h-2 rounded-full bg-emerald-500" />
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               100% Edge Isolated (D1 + R2)
             </div>
             <div className="text-[11px] text-slate-500 font-mono">

@@ -131,7 +131,7 @@ export function BarcodePrintView() {
           </div>
           <button
             onClick={handlePrint}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs transition-all shadow-xs interactive-button shrink-0"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs transition-all shadow-sm interactive-button shrink-0"
           >
             <Printer className="w-4 h-4" />
             Cetak Label Fisik (Ctrl + P)
@@ -151,7 +151,7 @@ export function BarcodePrintView() {
                 onClick={() => setTemplate("TJ108")}
                 className={`p-3.5 rounded-2xl border text-left transition-all interactive-card ${
                   template === "TJ108"
-                    ? "bg-blue-50/80 border-blue-400 text-blue-950 shadow-xs"
+                    ? "bg-blue-50/80 border-blue-400 text-blue-950 shadow-sm"
                     : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                 }`}
               >
@@ -164,7 +164,7 @@ export function BarcodePrintView() {
                 onClick={() => setTemplate("TJ103")}
                 className={`p-3.5 rounded-2xl border text-left transition-all interactive-card ${
                   template === "TJ103"
-                    ? "bg-blue-50/80 border-blue-400 text-blue-950 shadow-xs"
+                    ? "bg-blue-50/80 border-blue-400 text-blue-950 shadow-sm"
                     : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                 }`}
               >
@@ -243,8 +243,7 @@ export function BarcodePrintView() {
         {/* The Physical Sheet Canvas */}
         <div className="pt-6 flex justify-center">
           <div
-            className={`bg-[#fafaf9] text-black p-6 shadow-2xl rounded-sm grid ${gridColsClass} gap-2.5 w-full max-w-[850px] min-h-[600px] border border-slate-400/80`}
-            style={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)" }}
+            className={`bg-[#fafaf9] text-black p-6 shadow-md rounded-sm grid ${gridColsClass} gap-2.5 w-full max-w-[850px] min-h-[600px] border border-slate-300`}
           >
             {gridItems.map((item, idx) => {
               if (!item) {

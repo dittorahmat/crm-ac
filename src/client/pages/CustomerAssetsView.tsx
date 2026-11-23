@@ -198,7 +198,7 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
         </div>
         <button
           onClick={() => setShowAddUnitModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-all shadow-xs"
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs transition-all shadow-sm"
         >
           <Plus className="w-4 h-4" />
           Registrasi Unit AC Baru
@@ -206,7 +206,7 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
       </div>
 
       {/* Hierarchy Explorer Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Column 1: Customer List */}
         <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
           <div className="flex items-center justify-between">
@@ -223,7 +223,7 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
                 onClick={() => setSelectedCustomerId(c.id)}
                 className={`p-4 rounded-xl border cursor-pointer transition-all ${
                   activeCustomerId === c.id
-                    ? "bg-blue-50/70 border-blue-300 shadow-xs"
+                    ? "bg-blue-50/70 border-blue-300 shadow-sm"
                     : "bg-slate-50 border-slate-200 hover:bg-slate-100/80 hover:border-slate-300"
                 }`}
               >
@@ -297,7 +297,7 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
 
                   <button
                     onClick={() => onInspectUnit && onInspectUnit(unit.assetTag)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold transition-all shadow-xs"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold transition-all shadow-sm"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     Buka Riwayat
@@ -307,11 +307,11 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
             ))}
           </div>
         </div>
-      </div>
+      </section>
 
       {/* Add Unit Modal */}
       {showAddUnitModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-6 shadow-xl">
             <h3 className="text-base font-bold text-slate-900 mb-1">Registrasi Unit AC Baru</h3>
             <p className="text-xs text-slate-500 mb-4">
@@ -371,11 +371,11 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
                   onChange={(e) => setNewInterval(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white"
                 >
-                  <option value="1">Setiap 1 Bulan (Ruang Server / Kritis)</option>
-                  <option value="2">Setiap 2 Bulan (Area Padat / Restoran)</option>
+                  <option value="1">Setiap 1 Bulan (Ruang Server / Zona Kritis)</option>
+                  <option value="2">Setiap 2 Bulan (Zona Padat / Restoran)</option>
                   <option value="3">Setiap 3 Bulan (Standar Kantor B2B)</option>
                   <option value="4">Setiap 4 Bulan (Ruang Meeting Sedang)</option>
-                  <option value="6">Setiap 6 Bulan (Area Rendah Beban)</option>
+                  <option value="6">Setiap 6 Bulan (Zona Rendah Beban)</option>
                 </select>
               </div>
 
@@ -389,7 +389,7 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-xs"
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-semibold text-xs shadow-sm"
                 >
                   Simpan Aset AC
                 </button>

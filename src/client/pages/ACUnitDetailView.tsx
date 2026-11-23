@@ -168,7 +168,7 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
 
           {/* Right Column: Physical QR Tag & Asset Photo Preview */}
           <div className="lg:col-span-4 flex flex-col items-center justify-center space-y-4">
-            <div className="w-full rounded-2xl overflow-hidden border border-slate-200 relative group h-40 shadow-xs">
+            <div className="w-full rounded-2xl overflow-hidden border border-slate-200 relative group h-40 shadow-sm">
               <img 
                 src={unit.photoUrl} 
                 alt="AC Unit" 
@@ -180,9 +180,9 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
               </span>
             </div>
 
-            <div className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-xs">
+            <div className="w-full bg-slate-50 p-4 rounded-2xl border border-slate-200 flex items-center gap-4 shadow-sm">
               {qrUrl && (
-                <div className="p-2 bg-white rounded-xl shadow-xs border border-slate-200 shrink-0">
+                <div className="p-2 bg-white rounded-xl shadow-sm border border-slate-200 shrink-0">
                   <img src={qrUrl} alt={unit.assetTag} className="w-20 h-20 object-contain" />
                 </div>
               )}
@@ -280,7 +280,7 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
         <div className="space-y-6 relative before:absolute before:inset-0 before:left-5 before:w-0.5 before:bg-slate-200">
           {unit.serviceHistory.map((history) => (
             <div key={history.orderNumber} className="relative flex items-start gap-4">
-              <div className="h-10 w-10 rounded-2xl bg-blue-50 border-2 border-blue-500 text-blue-600 flex items-center justify-center shrink-0 z-10 shadow-xs">
+              <div className="h-10 w-10 rounded-2xl bg-blue-50 border-2 border-blue-500 text-blue-600 flex items-center justify-center shrink-0 z-10 shadow-sm">
                 <Wrench className="w-4 h-4" />
               </div>
 
@@ -332,7 +332,7 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
                     </span>
                     <div className="flex gap-3">
                       {history.evidencePhotos.map((photo, i) => (
-                        <div key={i} className="h-24 w-36 rounded-xl overflow-hidden border border-slate-200 relative group shadow-xs">
+                        <div key={i} className="h-24 w-36 rounded-xl overflow-hidden border border-slate-200 relative group shadow-sm">
                           <img src={photo} alt="Bukti" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           <span className="absolute bottom-1 left-1.5 px-2 py-0.5 bg-black/80 text-[10px] font-bold text-white rounded">
                             {i === 0 ? "Sebelum Cuci" : "Sesudah Cuci"}
