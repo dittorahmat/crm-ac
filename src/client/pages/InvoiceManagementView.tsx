@@ -79,7 +79,7 @@ export function InvoiceManagementView() {
         method: "POST",
       });
       const data = (await res.json()) as any;
-      if (res.ok) {
+      if (res.ok && data.success === true) {
         setInvoices((prev) =>
           prev.map((inv) =>
             inv.id === id ? { ...inv, status: "SENT", sentAt: "Baru Saja" } : inv

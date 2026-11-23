@@ -2,8 +2,7 @@ import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import * as schema from "../db/schema";
 import { requireRole } from "../middleware/auth";
-import { ResilientWhatsAppService } from "../services/whatsapp";
-import { getSystemSettings } from "../services/config";
+import { getSystemSettings, SETTING_KEYS, createConfiguredWhatsAppService } from "../services/config";
 import { sendTransactionalEmail } from "../services/email";
 
 export const settingsRouter = new Hono<{
@@ -51,10 +50,10 @@ settingsRouter.post("/settings", async (c) => {
   const deletions: string[] = [];
 
   const fields = [
-    { key: "meta_wa_token", val: body.metaWaToken, desc: "Meta Cloud API Bearer Token" },
-    { key: "meta_phone_number_id", val: body.metaPhoneNumberId, desc: "Meta Phone Number ID" },
-    { key: "fonnte_token", val: body.fonnteToken, desc: "Fonnte WhatsApp Token" },
-    { key: "resend_api_key", val: body.resendApiKey, desc: "Resend Transactional Email API Key" },
+    { key: SETTING_KEYS.META_WA_TOKEN, val: body.metaWaToken, desc: "Meta Cloud API Bearer Token" },
+    { key: SETTING_KEYS.META_PHONE_NUMBER_ID, val: body.metaPhoneNumberId, desc: "Meta Phone Number ID" },
+    { key: SETTING_KEYS.FONNTE_TOKEN, val: body.fonnteToken, desc: "Fonnte WhatsApp Token" },
+    { key: SETTING_KEYS.RESEND_API_KEY, val: body.resendApiKey, desc: "Resend Transactional Email API Key" },
   ];
 
   for (const f of fields) {
@@ -94,17 +93,11 @@ settingsRouter.post("/settings", async (c) => {
 // Test WhatsApp send
 settingsRouter.post("/settings/test-whatsapp", async (c) => {
   const db = c.get("db");
-  const { targetPhone, provider } = await c.req.json();
+  const { targetPhone } = await c.req.json();
 
   if (!targetPhone) return c.json({ error: "Target phone number required" }, 400);
 
-  const config = await getSystemSettings(db, c.env);
-
-  const waService = new ResilientWhatsAppService({
-    META_WA_TOKEN: config.metaWaToken,
-    META_PHONE_NUMBER_ID: config.metaPhoneNumberId,
-    FONNTE_TOKEN: config.fonnteToken,
-  });
+  const waService = await createConfiguredWhatsAppService(db, c.env);
 
   const result = await waService.dispatch({
     toPhone: targetPhone,

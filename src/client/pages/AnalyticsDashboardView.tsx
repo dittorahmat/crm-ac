@@ -42,7 +42,28 @@ export function AnalyticsDashboardView() {
         if (res.ok) {
           const data = (await res.json()) as any;
           if (data) {
-            setMetrics(data);
+            setMetrics({
+              totalUnits: data.totalUnits || 0,
+              activeUnits: data.activeUnits || 0,
+              completedOrders: data.completedOrders || 0,
+              dispatchedOrders: data.dispatchedOrders || 0,
+              totalRevenue: data.totalRevenue || 0,
+              invoiceCount: data.invoiceCount || 0,
+            });
+
+            if (Array.isArray(data.technicians) && data.technicians.length > 0) {
+              const mapped = data.technicians.map((t: any, idx: number) => ({
+                id: t.id,
+                name: t.name,
+                title: idx === 0 ? "Senior HVAC Specialist" : "Field Technician",
+                unitsServiced: t.unitsServiced,
+                rating: t.rating,
+                avgDuration: t.avgDuration,
+                onTimeRate: t.onTimeRate,
+                avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(t.name)}&background=0284c7&color=fff&bold=true&size=128`,
+              }));
+              setTechnicians(mapped);
+            }
           }
         }
       } catch (err) {
@@ -50,38 +71,11 @@ export function AnalyticsDashboardView() {
       }
     }
 
-    async function loadTechnicians() {
-      try {
-        const res = await fetch("/api/technicians");
-        if (res.ok) {
-          const techList = (await res.json()) as any[];
-          if (Array.isArray(techList) && techList.length > 0) {
-            const mapped = techList.map((t, idx) => ({
-              id: t.id,
-              name: t.name,
-              title: idx === 0 ? "Senior HVAC Specialist" : "Field Technician",
-              unitsServiced: 30 + (idx * 15),
-              rating: Number((4.7 + (idx * 0.1)).toFixed(1)),
-              avgDuration: `${50 + (idx * 6)} Menit`,
-              onTimeRate: `${92 + (idx * 3)}%`,
-              avatar: idx === 0
-                ? "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&w=150&q=80"
-                : "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=150&q=80",
-            }));
-            setTechnicians(mapped);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to load technicians from D1:", err);
-      }
-    }
-
     loadMetrics();
-    loadTechnicians();
   }, []);
 
   return (
-    <div className="space-y-8">
+    <main className="space-y-8 wrap">
       {/* Hero Section with Real Commercial HVAC Imagery */}
       <section className="relative rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm">
         <div className="absolute inset-0 z-0 opacity-10">
@@ -239,6 +233,6 @@ export function AnalyticsDashboardView() {
           ))}
         </div>
       </section>
-    </div>
+    </main>
   );
 }
