@@ -2,6 +2,8 @@ import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import * as schema from "../db/schema";
 import { requireRole } from "../middleware/auth";
+import { getSystemSettings } from "../services/config";
+import { sendTransactionalEmail } from "../services/email";
 
 export const invoicesRouter = new Hono<{
   Bindings: { DB: D1Database; R2: R2Bucket; RESEND_API_KEY?: string };
@@ -110,31 +112,20 @@ invoicesRouter.post("/invoices/generate", async (c) => {
 
   // Transactional Email dispatch via Resend
   let emailDispatched = false;
-  const resendApiKey = c.env.RESEND_API_KEY;
-  if (resendApiKey && customer?.picEmail) {
-    try {
-      const emailResp = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendApiKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: "KoolSync Invoicing <billing@koolsync.com>",
-          to: [customer.picEmail],
-          subject: `Faktur Tagihan Servis AC #${invoiceNumber} - ${customer.name}`,
-          html: `
-            <h3>Halo ${customer.picName},</h3>
-            <p>Faktur tagihan servis AC <strong>#${invoiceNumber}</strong> sebesar <strong>Rp ${total.toLocaleString("id-ID")}</strong> telah diterbitkan.</p>
-            <p><a href="https://crm-ac.tech1solusi.workers.dev${pdfUrl}">Buka Lembar Faktur #${invoiceNumber}</a></p>
-            <p>Jatuh tempo pembayaran: ${dueDate.toLocaleDateString("id-ID")}</p>
-          `,
-        }),
-      });
-      emailDispatched = emailResp.ok;
-    } catch (e) {
-      console.error("Failed to send email via Resend:", e);
-    }
+  const gatewayConfig = await getSystemSettings(db, c.env);
+  if (gatewayConfig.resendApiKey && customer?.picEmail) {
+    const emailResult = await sendTransactionalEmail({
+      apiKey: gatewayConfig.resendApiKey,
+      to: customer.picEmail,
+      subject: `Faktur Tagihan Servis AC #${invoiceNumber} - ${customer.name}`,
+      html: `
+        <h3>Halo ${customer.picName},</h3>
+        <p>Faktur tagihan servis AC <strong>#${invoiceNumber}</strong> sebesar <strong>Rp ${total.toLocaleString("id-ID")}</strong> telah diterbitkan.</p>
+        <p><a href="https://crm-ac.tech1solusi.workers.dev${pdfUrl}">Buka Lembar Faktur #${invoiceNumber}</a></p>
+        <p>Jatuh tempo pembayaran: ${dueDate.toLocaleDateString("id-ID")}</p>
+      `,
+    });
+    emailDispatched = emailResult.success;
   }
 
   return c.json({
@@ -171,49 +162,31 @@ invoicesRouter.post("/invoices/:id/send-email", async (c) => {
     return c.json({ error: "Customer does not have an email address" }, 400);
   }
 
-  // Get Resend API Key from systemSettings or Worker env
-  const [settingRow] = await db
-    .select()
-    .from(schema.systemSettings)
-    .where(eq(schema.systemSettings.key, "resend_api_key"))
-    .all();
-
-  const resendApiKey = (settingRow && settingRow.value) || c.env.RESEND_API_KEY;
-  if (!resendApiKey) {
+  // Get Resend API Key from unified settings
+  const gatewayConfig = await getSystemSettings(db, c.env);
+  if (!gatewayConfig.resendApiKey) {
     return c.json({ error: "Resend API key not configured" }, 400);
   }
 
-  try {
-    const emailResp = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${resendApiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        from: "KoolSync Invoicing <billing@koolsync.com>",
-        to: [recipientEmail],
-        subject: `Faktur Tagihan Servis AC #${row.invoice.invoiceNumber} - ${row.customer?.name}`,
-        html: `
-          <h3>Halo ${row.customer?.picName},</h3>
-          <p>Faktur tagihan servis AC <strong>#${row.invoice.invoiceNumber}</strong> sebesar <strong>Rp ${row.invoice.totalAmount.toLocaleString("id-ID")}</strong> siap untuk diproses.</p>
-          <p><a href="https://crm-ac.tech1solusi.workers.dev${row.invoice.pdfUrl}">Buka Lembar Faktur #${row.invoice.invoiceNumber}</a></p>
-          <p>Jatuh tempo pembayaran: ${new Date(row.invoice.dueDate).toLocaleDateString("id-ID")}</p>
-        `,
-      }),
-    });
+  const emailResult = await sendTransactionalEmail({
+    apiKey: gatewayConfig.resendApiKey,
+    to: recipientEmail,
+    subject: `Faktur Tagihan Servis AC #${row.invoice.invoiceNumber} - ${row.customer?.name}`,
+    html: `
+      <h3>Halo ${row.customer?.picName},</h3>
+      <p>Faktur tagihan servis AC <strong>#${row.invoice.invoiceNumber}</strong> sebesar <strong>Rp ${row.invoice.totalAmount.toLocaleString("id-ID")}</strong> siap untuk diproses.</p>
+      <p><a href="https://crm-ac.tech1solusi.workers.dev${row.invoice.pdfUrl}">Buka Lembar Faktur #${row.invoice.invoiceNumber}</a></p>
+      <p>Jatuh tempo pembayaran: ${new Date(row.invoice.dueDate).toLocaleDateString("id-ID")}</p>
+    `,
+  });
 
-    const data = await emailResp.json();
-    if (emailResp.ok) {
-      await db
-        .update(schema.invoices)
-        .set({ status: "SENT", sentAt: new Date() })
-        .where(eq(schema.invoices.id, id));
-      return c.json({ success: true, data });
-    } else {
-      return c.json({ success: false, error: JSON.stringify(data) }, 502);
-    }
-  } catch (err: any) {
-    return c.json({ success: false, error: err.message }, 500);
+  if (emailResult.success) {
+    await db
+      .update(schema.invoices)
+      .set({ status: "SENT", sentAt: new Date() })
+      .where(eq(schema.invoices.id, id));
+    return c.json({ success: true, data: emailResult.data });
+  } else {
+    return c.json({ success: false, error: emailResult.error }, 502);
   }
 });

@@ -11,6 +11,7 @@ import { evidenceRouter } from "./routes/evidence";
 import { invoicesRouter } from "./routes/invoices";
 import { settingsRouter } from "./routes/settings";
 import { ResilientWhatsAppService } from "./services/whatsapp";
+import { getSystemSettings } from "./services/config";
 
 type Bindings = {
   DB: D1Database;
@@ -118,10 +119,11 @@ export default {
     if (!env.DB) return;
 
     const db = drizzle(env.DB, { schema });
+    const gatewayConfig = await getSystemSettings(db, env);
     const waService = new ResilientWhatsAppService({
-      META_WA_TOKEN: env.META_WA_TOKEN,
-      META_PHONE_NUMBER_ID: env.META_PHONE_NUMBER_ID,
-      FONNTE_TOKEN: env.FONNTE_TOKEN,
+      META_WA_TOKEN: gatewayConfig.metaWaToken,
+      META_PHONE_NUMBER_ID: gatewayConfig.metaPhoneNumberId,
+      FONNTE_TOKEN: gatewayConfig.fonnteToken,
     });
 
     const now = new Date();

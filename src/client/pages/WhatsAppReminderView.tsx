@@ -62,17 +62,19 @@ export function WhatsAppReminderView() {
       const res = await fetch(`/api/reminders/${id}/send`, {
         method: "POST",
       });
-      if (res.ok) {
+      const data = (await res.json()) as any;
+      if (res.ok && data.success) {
         setReminders((prev) =>
           prev.map((r) =>
-            r.id === id ? { ...r, lastSentStatus: "SENT" } : r
+            r.id === id ? { ...r, lastSentStatus: "SENT", providerUsed: data.provider } : r
           )
         );
       } else {
-        alert("Gagal mengirim pengingat WhatsApp.");
+        alert(data.error || "Gagal mengirim pengingat WhatsApp. Pastikan token Meta atau Fonnte sudah diatur di Pengaturan Gateway.");
       }
     } catch (err) {
       console.error("Failed to send WhatsApp reminder:", err);
+      alert("Terjadi kesalahan jaringan.");
     } finally {
       setSendingId(null);
     }

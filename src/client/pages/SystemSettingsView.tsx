@@ -113,26 +113,28 @@ export function SystemSettingsView() {
   };
 
   return (
-    <div className="space-y-6">
+    <main className="space-y-6 wrap">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <Settings className="w-6 h-6 text-blue-600" />
-            Pengaturan Gateway & Otomasi
-          </h2>
-          <p className="text-xs md:text-sm text-slate-500">
-            Kelola kredensial Meta WhatsApp Cloud API, Fonnte Fallback, dan Resend Email langsung ke Cloudflare D1
-          </p>
+      <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 className="text-xl md:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+              <Settings className="w-6 h-6 text-blue-600" />
+              Pengaturan Gateway & Otomasi
+            </h2>
+            <p className="text-xs md:text-sm text-slate-500 mt-1">
+              Kelola kredensial Meta WhatsApp Cloud API, Fonnte Fallback, dan Resend Email langsung ke Cloudflare D1
+            </p>
+          </div>
         </div>
-      </div>
 
-      {saveSuccess && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 shadow-sm">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          Kredensial dan pengaturan berhasil disimpan ke database D1!
-        </div>
-      )}
+        {saveSuccess && (
+          <div className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center gap-2 shadow-sm">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+            Kredensial dan pengaturan berhasil disimpan ke database D1!
+          </div>
+        )}
+      </section>
 
       {/* Main Settings Form */}
       <form onSubmit={handleSave} className="space-y-6">
@@ -145,12 +147,19 @@ export function SystemSettingsView() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Meta Cloud API Bearer Token
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  Meta Cloud API Bearer Token
+                </label>
+                {settings.hasMetaToken && (
+                  <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Aktif di Database
+                  </span>
+                )}
+              </div>
               <input
                 type="password"
-                placeholder={settings.hasMetaToken ? "Tersimpan (Ketik untuk mengganti)" : "EAAG..."}
+                placeholder={settings.hasMetaToken ? "Token tersimpan (biarkan kosong jika tidak diubah)" : "EAAG..."}
                 value={settings.metaWaToken}
                 onChange={(e) => setSettings({ ...settings, metaWaToken: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-500 focus:bg-white"
@@ -161,9 +170,16 @@ export function SystemSettingsView() {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Meta Phone Number ID
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  Meta Phone Number ID
+                </label>
+                {settings.metaPhoneNumberId && (
+                  <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Tersimpan
+                  </span>
+                )}
+              </div>
               <input
                 type="text"
                 placeholder="104928172635489"
@@ -177,12 +193,19 @@ export function SystemSettingsView() {
             </div>
 
             <div className="md:col-span-2">
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Fonnte Token (Fallback Gateway)
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-xs font-semibold text-slate-700">
+                  Fonnte Token (Fallback Gateway)
+                </label>
+                {settings.hasFonnteToken && (
+                  <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                    Aktif di Database
+                  </span>
+                )}
+              </div>
               <input
                 type="password"
-                placeholder={settings.hasFonnteToken ? "Tersimpan (Ketik untuk mengganti)" : "Token API Fonnte"}
+                placeholder={settings.hasFonnteToken ? "Token tersimpan (biarkan kosong jika tidak diubah)" : "Token API Fonnte"}
                 value={settings.fonnteToken}
                 onChange={(e) => setSettings({ ...settings, fonnteToken: e.target.value })}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-500 focus:bg-white"
@@ -202,12 +225,19 @@ export function SystemSettingsView() {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
-              Resend API Key
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="text-xs font-semibold text-slate-700">
+                Resend API Key
+              </label>
+              {settings.hasResendApiKey && (
+                <span className="text-[10px] text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+                  Aktif di Database
+                </span>
+              )}
+            </div>
             <input
               type="password"
-              placeholder={settings.hasResendApiKey ? "Tersimpan (Ketik untuk mengganti)" : "re_123456789..."}
+              placeholder={settings.hasResendApiKey ? "API key tersimpan (biarkan kosong jika tidak diubah)" : "re_123456789..."}
               value={settings.resendApiKey}
               onChange={(e) => setSettings({ ...settings, resendApiKey: e.target.value })}
               className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-500 focus:bg-white"
@@ -313,6 +343,6 @@ export function SystemSettingsView() {
           </div>
         </div>
       </section>
-    </div>
+    </main>
   );
 }

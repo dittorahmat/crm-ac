@@ -4,6 +4,7 @@ import * as schema from "../db/schema";
 import { z } from "zod";
 import { requireRole } from "../middleware/auth";
 import { ResilientWhatsAppService } from "../services/whatsapp";
+import { getSystemSettings } from "../services/config";
 
 export const ordersRouter = new Hono<{
   Bindings: {
@@ -195,21 +196,13 @@ ordersRouter.post("/reminders/:id/send", requireRole(["admin"]), async (c) => {
     return c.json({ error: "Customer or phone number not found" }, 404);
   }
 
-  // Fetch gateway tokens from systemSettings D1 or fallback to Worker env
-  const settingsRows = await db.select().from(schema.systemSettings).all();
-  const settingsMap: Record<string, string> = {};
-  for (const s of settingsRows) {
-    settingsMap[s.key] = s.value;
-  }
-
-  const metaToken = settingsMap["meta_wa_token"] || c.env.META_WA_TOKEN;
-  const metaPhoneId = settingsMap["meta_phone_number_id"] || c.env.META_PHONE_NUMBER_ID;
-  const fonnteToken = settingsMap["fonnte_token"] || c.env.FONNTE_TOKEN;
+  // Fetch gateway tokens from unified settings (D1 first, fallback to Worker env)
+  const gatewayConfig = await getSystemSettings(db, c.env);
 
   const waService = new ResilientWhatsAppService({
-    META_WA_TOKEN: metaToken,
-    META_PHONE_NUMBER_ID: metaPhoneId,
-    FONNTE_TOKEN: fonnteToken,
+    META_WA_TOKEN: gatewayConfig.metaWaToken,
+    META_PHONE_NUMBER_ID: gatewayConfig.metaPhoneNumberId,
+    FONNTE_TOKEN: gatewayConfig.fonnteToken,
   });
 
   const dueDateStr = row.unit.nextServiceDueDate
@@ -240,11 +233,20 @@ ordersRouter.post("/reminders/:id/send", requireRole(["admin"]), async (c) => {
     createdAt: new Date(),
   });
 
+  if (!result.success) {
+    return c.json({
+      success: false,
+      logId,
+      provider: result.provider === "meta" ? "Meta Cloud API" : "Fonnte (Fallback)",
+      status: "FAILED",
+      error: result.error || "Gagal mengirim pesan WhatsApp. Pastikan token Meta atau Fonnte aktif.",
+    }, 502);
+  }
+
   return c.json({
-    success: result.success,
+    success: true,
     logId,
     provider: result.provider === "meta" ? "Meta Cloud API" : "Fonnte (Fallback)",
-    status: result.success ? "SENT" : "FAILED",
-    error: result.error,
+    status: "SENT",
   });
 });
