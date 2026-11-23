@@ -114,24 +114,24 @@ export function BarcodePrintView() {
   return (
     <div className="space-y-8">
       {/* Control Panel (Hidden when printing) */}
-      <section className="no-print bg-[#0b111c] border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
+      <section className="no-print bg-white border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6 shadow-sm">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 mb-2">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 mb-2">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Die-Cut Label Calibration Engine</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
-              <QrCode className="w-6 h-6 text-cyan-400" />
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
+              <QrCode className="w-6 h-6 text-blue-600" />
               Generator & Cetak Stiker Tom & Jerry
             </h1>
-            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
               Konfigurasi layout lembar stiker Tom & Jerry standar dengan offset baris/kolom agar stiker sisa tidak terbuang.
             </p>
           </div>
           <button
             onClick={handlePrint}
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs transition-all shadow-glow-cold interactive-button shrink-0"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs transition-all shadow-xs interactive-button shrink-0"
           >
             <Printer className="w-4 h-4" />
             Cetak Label Fisik (Ctrl + P)
@@ -142,7 +142,7 @@ export function BarcodePrintView() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Template Selection */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-300">
+            <label className="block text-xs font-bold text-slate-700">
               Format Kertas Stiker Tom & Jerry
             </label>
             <div className="grid grid-cols-2 gap-3">
@@ -151,12 +151,12 @@ export function BarcodePrintView() {
                 onClick={() => setTemplate("TJ108")}
                 className={`p-3.5 rounded-2xl border text-left transition-all interactive-card ${
                   template === "TJ108"
-                    ? "bg-cyan-500/10 border-cyan-500/60 text-white shadow-glow-cold"
-                    : "bg-[#06090e] border-slate-800 text-slate-400"
+                    ? "bg-blue-50/80 border-blue-400 text-blue-950 shadow-xs"
+                    : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                 }`}
               >
-                <div className="text-sm font-extrabold">No. 108</div>
-                <div className="text-[10px] text-slate-400 mt-1 font-mono">38 x 18 mm (40 Stiker)</div>
+                <div className="text-sm font-extrabold text-slate-900">No. 108</div>
+                <div className="text-[10px] text-slate-500 mt-1 font-mono">38 x 18 mm (40 Stiker)</div>
               </button>
 
               <button
@@ -164,21 +164,21 @@ export function BarcodePrintView() {
                 onClick={() => setTemplate("TJ103")}
                 className={`p-3.5 rounded-2xl border text-left transition-all interactive-card ${
                   template === "TJ103"
-                    ? "bg-cyan-500/10 border-cyan-500/60 text-white shadow-glow-cold"
-                    : "bg-[#06090e] border-slate-800 text-slate-400"
+                    ? "bg-blue-50/80 border-blue-400 text-blue-950 shadow-xs"
+                    : "bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300"
                 }`}
               >
-                <div className="text-sm font-extrabold">No. 103</div>
-                <div className="text-[10px] text-slate-400 mt-1 font-mono">64 x 32 mm (12 Stiker)</div>
+                <div className="text-sm font-extrabold text-slate-900">No. 103</div>
+                <div className="text-[10px] text-slate-500 mt-1 font-mono">64 x 32 mm (12 Stiker)</div>
               </button>
             </div>
           </div>
 
           {/* Start Grid Offset */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-300 flex items-center justify-between">
+            <label className="block text-xs font-bold text-slate-700 flex items-center justify-between">
               <span>Mulai Cetak dari Stiker Ke-</span>
-              <span className="text-cyan-400 font-mono text-sm font-extrabold">#{startOffset + 1}</span>
+              <span className="text-blue-600 font-mono text-sm font-extrabold">#{startOffset + 1}</span>
             </label>
             <input
               type="range"
@@ -186,17 +186,17 @@ export function BarcodePrintView() {
               max={totalSlots - 1}
               value={startOffset}
               onChange={(e) => setStartOffset(parseInt(e.target.value))}
-              className="w-full accent-cyan-400 cursor-pointer h-2 bg-slate-900 rounded-lg"
+              className="w-full accent-blue-600 cursor-pointer h-2 bg-slate-200 rounded-lg"
             />
-            <p className="text-[11px] text-slate-400 flex items-center gap-1.5 pt-1">
-              <Info className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+            <p className="text-[11px] text-slate-500 flex items-center gap-1.5 pt-1">
+              <Info className="w-3.5 h-3.5 text-blue-600 shrink-0" />
               Menghemat kertas dengan melewati kotak stiker yang sudah terpakai sebelumnya.
             </p>
           </div>
 
           {/* Select Units */}
           <div className="space-y-2">
-            <label className="block text-xs font-bold text-slate-300">
+            <label className="block text-xs font-bold text-slate-700">
               Pilih Unit AC ({selectedUnits.length}/{units.length})
             </label>
             <div className="max-h-28 overflow-y-auto space-y-1.5 pr-2">
@@ -206,15 +206,15 @@ export function BarcodePrintView() {
                   <div
                     key={u.id}
                     onClick={() => toggleSelect(u.id)}
-                    className="flex items-center gap-2.5 p-2 rounded-xl bg-[#06090e] border border-slate-800/80 cursor-pointer text-xs hover:border-slate-700 transition-all"
+                    className="flex items-center gap-2.5 p-2 rounded-xl bg-slate-50 border border-slate-200 cursor-pointer text-xs hover:border-slate-300 transition-all"
                   >
                     {checked ? (
-                      <CheckSquare className="w-4 h-4 text-cyan-400" />
+                      <CheckSquare className="w-4 h-4 text-blue-600" />
                     ) : (
-                      <Square className="w-4 h-4 text-slate-600" />
+                      <Square className="w-4 h-4 text-slate-400" />
                     )}
-                    <span className="font-mono font-bold text-slate-200">{u.assetTag}</span>
-                    <span className="text-[11px] text-slate-400 truncate">- {u.zoneName}</span>
+                    <span className="font-mono font-bold text-slate-900">{u.assetTag}</span>
+                    <span className="text-[11px] text-slate-500 truncate">- {u.zoneName}</span>
                   </div>
                 );
               })}
@@ -224,18 +224,18 @@ export function BarcodePrintView() {
       </section>
 
       {/* Realistic Physical Sheet Preview (Paper Tabletop Simulation) */}
-      <section className="bg-[#0b111c] border border-slate-800 rounded-3xl p-6 sm:p-10 overflow-x-auto shadow-2xl">
-        <div className="no-print flex items-center justify-between pb-6 border-b border-slate-800">
+      <section className="bg-white border border-slate-200 rounded-3xl p-6 sm:p-10 overflow-x-auto shadow-sm">
+        <div className="no-print flex items-center justify-between pb-6 border-b border-slate-200">
           <div>
-            <h2 className="text-base font-bold text-white flex items-center gap-2">
-              <Layers className="w-4 h-4 text-cyan-400" />
+            <h2 className="text-base font-bold text-slate-900 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-blue-600" />
               Pratinjau Lembar Fisik Tom & Jerry A4 (Skala Millimeter 1:1)
             </h2>
-            <p className="text-xs text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-500 mt-0.5">
               Kotak bergaris putus-putus menunjukkan stiker kosong yang dilewati sesuai offset yang Anda atur.
             </p>
           </div>
-          <span className="text-xs font-mono font-bold text-cyan-400">
+          <span className="text-xs font-mono font-bold text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
             {selectedUnits.length} Stiker Aktif
           </span>
         </div>
