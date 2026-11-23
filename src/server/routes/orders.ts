@@ -2,11 +2,15 @@ import { Hono } from "hono";
 import { eq, desc } from "drizzle-orm";
 import * as schema from "../db/schema";
 import { z } from "zod";
+import { requireRole } from "../middleware/auth";
 
 export const ordersRouter = new Hono<{
   Bindings: { DB: D1Database };
   Variables: { db: any; user: any };
 }>();
+
+// Only admin can create new scheduled service orders
+ordersRouter.post("/orders", requireRole(["admin"]));
 
 const createOrderSchema = z.object({
   customerId: z.string(),

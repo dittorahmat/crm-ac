@@ -30,11 +30,7 @@ export function App() {
     "dashboard" | "customers" | "tags" | "schedules" | "service_flow" | "invoices" | "reminders" | "unit_detail"
   >("dashboard");
   const [inspectingTag, setInspectingTag] = useState<string>("AC-MSF-SRV-01");
-  const [user, setUser] = useState<{ name: string; email: string; role: string } | null>({
-    name: "Admin Operasional",
-    email: "admin@koolsync.com",
-    role: "admin",
-  });
+  const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
@@ -51,43 +47,53 @@ export function App() {
   if (!user) {
     return (
       <LoginPage
-        onLoginSuccess={() =>
-          setUser({
-            name: "Admin Operasional",
-            email: "admin@koolsync.com",
-            role: "admin",
-          })
-        }
+        onLoginSuccess={(userData) => {
+          if (!userData || !userData.role) {
+            console.error("Login attempt with invalid user payload rejected.");
+            return;
+          }
+          setUser(userData);
+          // Auto-direct technicians to field operational workflow
+          if (userData.role === "technician") {
+            setActiveTab("service_flow");
+          } else {
+            setActiveTab("dashboard");
+          }
+        }}
       />
     );
   }
 
-  const navItems = [
-    { id: "dashboard", label: "Dashboard Metrik", icon: BarChart3 },
-    { id: "customers", label: "Aset & Customer B2B", icon: Building2 },
-    { id: "tags", label: "Cetak Label Tom & Jerry", icon: QrCode },
-    { id: "schedules", label: "Penjadwalan Teknisi", icon: CalendarClock },
-    { id: "service_flow", label: "Tracking Lapangan (Real-time)", icon: ClipboardCheck },
-    { id: "invoices", label: "Faktur & Tagihan PDF", icon: FileText },
-    { id: "reminders", label: "Otomasi WhatsApp (3-6 Bulan)", icon: Bell },
+  // Define full navigation items with RBAC roles
+  const allNavItems = [
+    { id: "dashboard", label: "Dashboard Metrik", icon: BarChart3, roles: ["admin"] },
+    { id: "customers", label: "Aset & Customer B2B", icon: Building2, roles: ["admin"] },
+    { id: "tags", label: "Cetak Label Tom & Jerry", icon: QrCode, roles: ["admin"] },
+    { id: "schedules", label: "Penjadwalan Teknisi", icon: CalendarClock, roles: ["admin", "technician"] },
+    { id: "service_flow", label: "Tracking Lapangan (Real-time)", icon: ClipboardCheck, roles: ["admin", "technician"] },
+    { id: "invoices", label: "Faktur & Tagihan PDF", icon: FileText, roles: ["admin"] },
+    { id: "reminders", label: "Otomasi WhatsApp (3-6 Bulan)", icon: Bell, roles: ["admin"] },
   ] as const;
 
+  const currentRole = user.role === "technician" ? "technician" : "admin";
+  const navItems = allNavItems.filter((item) => (item.roles as readonly string[]).includes(currentRole));
+
   return (
-    <div className="min-h-screen flex flex-col md:flex-row bg-[#06090e] text-slate-100">
+    <div className="min-h-screen flex flex-col md:flex-row bg-slate-50 text-slate-900">
       {/* Mobile Topbar */}
-      <header className="md:hidden bg-[#090e17] border-b border-slate-800/80 p-4 flex items-center justify-between no-print sticky top-0 z-50">
+      <header className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between no-print sticky top-0 z-50 shadow-sm">
         <div className="flex items-center gap-2.5">
-          <div className="h-9 w-9 rounded-xl bg-cyan-500/10 border border-cyan-500/20 flex items-center justify-center text-cyan-400">
+          <div className="h-9 w-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
             <Snowflake className="w-5 h-5" />
           </div>
           <div>
-            <span className="font-bold tracking-tight text-white block text-sm">KoolSync Enterprise</span>
-            <span className="text-[10px] text-cyan-400 font-medium">B2B Commercial AC Service</span>
+            <span className="font-bold tracking-tight text-slate-900 block text-sm">KoolSync Enterprise</span>
+            <span className="text-[10px] text-blue-600 font-semibold">B2B Commercial AC Service</span>
           </div>
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-white"
+          className="p-2 rounded-lg bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900"
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -97,30 +103,30 @@ export function App() {
       <aside
         className={`${
           mobileMenuOpen ? "block" : "hidden"
-        } md:block w-full md:w-72 bg-[#090e17] border-r border-slate-800/70 flex flex-col shrink-0 no-print z-40`}
+        } md:block w-full md:w-72 bg-white border-r border-slate-200 flex flex-col shrink-0 no-print z-40`}
       >
-        <div className="p-6 border-b border-slate-800/60 hidden md:flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-gradient-to-tr from-cyan-600/20 to-cyan-400/20 border border-cyan-500/30 flex items-center justify-center text-cyan-400 shadow-glow-cold">
+        <div className="p-6 border-b border-slate-100 hidden md:flex items-center gap-3">
+          <div className="h-10 w-10 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-sm">
             <Snowflake className="w-5 h-5" />
           </div>
           <div>
-            <h1 className="text-base font-extrabold tracking-tight text-white leading-tight">
+            <h1 className="text-base font-extrabold tracking-tight text-slate-900 leading-tight">
               KoolSync
             </h1>
-            <p className="text-[11px] text-cyan-400 font-semibold tracking-wide uppercase">Commercial AC CRM</p>
+            <p className="text-[11px] text-blue-600 font-bold tracking-wide uppercase">Commercial AC CRM</p>
           </div>
         </div>
 
         {/* User Card */}
-        <div className="p-4 mx-4 my-3 bg-[#0d1522] rounded-2xl border border-slate-800 flex items-center gap-3">
-          <div className="h-9 w-9 rounded-xl bg-slate-800/80 border border-slate-700/80 flex items-center justify-center text-slate-300">
+        <div className="p-4 mx-4 my-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center gap-3">
+          <div className="h-9 w-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 shadow-sm">
             <User className="w-4 h-4" />
           </div>
           <div className="overflow-hidden flex-1">
-            <p className="text-xs font-bold text-white truncate">{user.name}</p>
+            <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
             <div className="flex items-center gap-1.5 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] uppercase font-mono font-semibold text-slate-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              <span className="text-[10px] uppercase font-mono font-semibold text-slate-500">
                 {user.role} • Cloudflare Edge
               </span>
             </div>
@@ -141,11 +147,11 @@ export function App() {
                 }}
                 className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-semibold transition-all interactive-button ${
                   active
-                    ? "bg-cyan-500 text-slate-950 font-bold shadow-glow-cold"
-                    : "text-slate-400 hover:text-white hover:bg-slate-800/50"
+                    ? "bg-blue-600 text-white font-bold shadow-sm shadow-blue-500/20"
+                    : "text-slate-600 hover:text-slate-900 hover:bg-slate-100"
                 }`}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${active ? "text-slate-950 stroke-[2.5]" : "text-slate-400"}`} />
+                <Icon className={`w-4 h-4 shrink-0 ${active ? "text-white stroke-[2.5]" : "text-slate-500"}`} />
                 <span className="truncate">{item.label}</span>
               </button>
             );
@@ -153,9 +159,9 @@ export function App() {
         </nav>
 
         {/* Bottom Barcode Quick Scan Action */}
-        <div className="p-4 mx-4 mb-3 bg-gradient-to-br from-cyan-950/40 to-slate-900 border border-cyan-500/20 rounded-2xl space-y-2">
-          <div className="flex items-center gap-1.5 text-[10px] font-bold text-cyan-300 uppercase tracking-wider">
-            <Sparkles className="w-3.5 h-3.5" />
+        <div className="p-4 mx-4 mb-3 bg-blue-50/60 border border-blue-100 rounded-2xl space-y-2">
+          <div className="flex items-center gap-1.5 text-[10px] font-bold text-blue-700 uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
             <span>Digital Asset Passport</span>
           </div>
           <button
@@ -163,7 +169,7 @@ export function App() {
               setInspectingTag("AC-MSF-SRV-01");
               setActiveTab("unit_detail");
             }}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 border border-cyan-500/30 text-xs font-bold text-cyan-300 interactive-button transition-all"
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 border border-blue-700 text-xs font-bold text-white interactive-button transition-all shadow-sm"
           >
             <QrCode className="w-4 h-4" />
             <span>Simulasi Scan Barcode AC</span>
@@ -171,10 +177,10 @@ export function App() {
         </div>
 
         {/* Bottom Logout */}
-        <div className="p-4 border-t border-slate-800/60">
+        <div className="p-4 border-t border-slate-100">
           <button
             onClick={() => setUser(null)}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span>Keluar Sistem</span>
@@ -183,26 +189,26 @@ export function App() {
       </aside>
 
       {/* Semantic Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10 bg-[#06090e] min-h-screen">
-        <div className="max-w-7xl mx-auto">
-          {activeTab === "dashboard" && <AnalyticsDashboardView />}
-          {activeTab === "customers" && (
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10 bg-slate-50 min-h-screen">
+        <div className="max-w-7xl mx-auto wrap">
+          {activeTab === "dashboard" && (currentRole === "admin" ? <AnalyticsDashboardView /> : <FieldTrackingView />)}
+          {activeTab === "customers" && (currentRole === "admin" ? (
             <CustomerAssetsView
               onInspectUnit={(tag) => {
                 setInspectingTag(tag);
                 setActiveTab("unit_detail");
               }}
             />
-          )}
-          {activeTab === "tags" && <BarcodePrintView />}
+          ) : <FieldTrackingView />)}
+          {activeTab === "tags" && (currentRole === "admin" ? <BarcodePrintView /> : <FieldTrackingView />)}
           {activeTab === "schedules" && <ServiceScheduleView />}
           {activeTab === "service_flow" && <FieldTrackingView />}
-          {activeTab === "invoices" && <InvoiceManagementView />}
-          {activeTab === "reminders" && <WhatsAppReminderView />}
+          {activeTab === "invoices" && (currentRole === "admin" ? <InvoiceManagementView /> : <FieldTrackingView />)}
+          {activeTab === "reminders" && (currentRole === "admin" ? <WhatsAppReminderView /> : <FieldTrackingView />)}
           {activeTab === "unit_detail" && (
             <ACUnitDetailView
               assetTag={inspectingTag}
-              onBack={() => setActiveTab("customers")}
+              onBack={() => setActiveTab(currentRole === "admin" ? "customers" : "service_flow")}
             />
           )}
         </div>

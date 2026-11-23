@@ -2,11 +2,22 @@ import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import * as schema from "../db/schema";
 import { z } from "zod";
+import { requireRole } from "../middleware/auth";
 
 export const assetsRouter = new Hono<{
   Bindings: { DB: D1Database };
   Variables: { db: any; user: any };
 }>();
+
+// Protect all master data mutations (root and subpaths) with admin role
+const mutationMethods = new Set(["POST", "PUT", "PATCH", "DELETE"]);
+assetsRouter.use("*", async (c, next) => {
+  if (mutationMethods.has(c.req.method)) {
+    // Only permit mutations if user is admin
+    return requireRole(["admin"])(c, next);
+  }
+  await next();
+});
 
 // Schemas
 const customerSchema = z.object({

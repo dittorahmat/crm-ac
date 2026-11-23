@@ -1,11 +1,15 @@
 import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import * as schema from "../db/schema";
+import { requireRole } from "../middleware/auth";
 
 export const invoicesRouter = new Hono<{
   Bindings: { DB: D1Database; R2: R2Bucket; RESEND_API_KEY?: string };
   Variables: { db: any; user: any };
 }>();
+
+// Enforce admin-only for all billing & invoices routes
+invoicesRouter.use("*", requireRole(["admin"]));
 
 // List Invoices
 invoicesRouter.get("/invoices", async (c) => {
