@@ -83,8 +83,8 @@ export function InvoiceManagementView() {
         </div>
       </div>
 
-      {/* Invoice List */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+            {/* Invoice List */}
+      <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
             Daftar Tagihan B2B
@@ -174,8 +174,8 @@ export function InvoiceManagementView() {
               </div>
             </div>
           ))}
-        </div>
-      </div>
+                </div>
+      </section>
     </div>
   );
 }

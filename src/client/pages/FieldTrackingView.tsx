@@ -36,11 +36,11 @@ export function FieldTrackingView() {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-6">
+      <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-teal-500/10 text-blue-600 border border-teal-500/20">
+              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
                 {activeUnitTag}
               </span>
               <span className="text-xs text-slate-500">Daikin Inverter 2.0 PK</span>
@@ -97,14 +97,14 @@ export function FieldTrackingView() {
             onClick={() => setStep("done")}
             className={`py-2 px-1 rounded-xl text-xs font-medium border transition-all ${
               step === "done"
-                ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-400"
+                ? "bg-emerald-50 border-emerald-200 text-emerald-700"
                 : "bg-slate-50 border-slate-200 text-slate-500"
             }`}
           >
             4. Selesai
           </button>
         </div>
-      </div>
+      </section>
 
       {/* Step 1: Photos Evidence */}
       {step === "inspect" && (

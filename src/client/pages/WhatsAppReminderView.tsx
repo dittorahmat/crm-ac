@@ -124,8 +124,8 @@ export function WhatsAppReminderView() {
         </div>
       </div>
 
-      {/* Reminders List */}
-      <div className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4">
+            {/* Reminders List */}
+      <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
             Daftar Jadwal Perawatan Mendekati Jatuh Tempo (H-7 s/d H-1)
@@ -182,8 +182,8 @@ export function WhatsAppReminderView() {
               </div>
             </div>
           ))}
-        </div>
-      </div>
+                </div>
+      </section>
     </div>
   );
 }
