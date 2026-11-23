@@ -1,0 +1,27 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased font-sans selection:bg-teal-500 selection:text-white;
+  }
+}
+
+/* Print CSS setup for Tom & Jerry precise die-cut label sheets */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 5mm;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}
