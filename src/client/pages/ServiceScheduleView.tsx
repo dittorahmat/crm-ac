@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { 
   CalendarClock, 
   UserCheck, 
@@ -9,7 +9,8 @@ import {
   AlertCircle,
   Building2,
   Calendar,
-  Send
+  Send,
+  Loader2
 } from "lucide-react";
 
 interface ServiceOrder {
@@ -19,64 +20,105 @@ interface ServiceOrder {
   locationName: string;
   address: string;
   unitCount: number;
+  technicianId?: string;
   technicianName?: string;
   scheduledDate: string;
   status: "SCHEDULED" | "DISPATCHED" | "CHECKED_IN" | "IN_PROGRESS" | "COMPLETED";
 }
 
-export function ServiceScheduleView() {
-  const [orders, setOrders] = useState<ServiceOrder[]>([
-    {
-      id: "so_1",
-      orderNumber: "SO-202611-104",
-      customerName: "PT. Mega Solusi Finansial",
-      locationName: "Gedung Wisma Sudirman Lt. 8",
-      address: "Jl. Jend. Sudirman Kav. 24, Jakarta Pusat",
-      unitCount: 8,
-      technicianName: "Fajar Pratama (Senior Tech)",
-      scheduledDate: "2026-11-24 09:00",
-      status: "DISPATCHED",
-    },
-    {
-      id: "so_2",
-      orderNumber: "SO-202611-105",
-      customerName: "CV. Digital Niaga Nusantara",
-      locationName: "Head Office Tebet",
-      address: "Jl. Tebet Raya No. 45, Jakarta Selatan",
-      unitCount: 4,
-      technicianName: undefined,
-      scheduledDate: "2026-11-24 14:00",
-      status: "SCHEDULED",
-    },
-    {
-      id: "so_3",
-      orderNumber: "SO-202611-103",
-      customerName: "PT. Surya Teknologi Global",
-      locationName: "Graha Mandiri Lt. 12",
-      address: "Jl. M.H. Thamrin No. 8, Jakarta Pusat",
-      unitCount: 12,
-      technicianName: "Agus Santoso",
-      scheduledDate: "2026-11-23 10:00",
-      status: "COMPLETED",
-    },
-  ]);
+interface Technician {
+  id: string;
+  name: string;
+  email: string;
+}
 
+export function ServiceScheduleView() {
+  const [orders, setOrders] = useState<ServiceOrder[]>([]);
+  const [technicians, setTechnicians] = useState<Technician[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showDispatchModal, setShowDispatchModal] = useState(false);
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [assignedTech, setAssignedTech] = useState("Fajar Pratama (Senior Tech)");
+  const [assignedTechId, setAssignedTechId] = useState<string>("");
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleDispatch = (e: React.FormEvent) => {
+  const fetchOrders = async () => {
+    try {
+      const res = await fetch("/api/orders");
+      if (res.ok) {
+        const raw = (await res.json()) as any[];
+        const mapped: ServiceOrder[] = raw.map((item: any) => ({
+          id: item.order.id,
+          orderNumber: item.order.orderNumber,
+          customerName: item.customer?.name || "Pelanggan B2B",
+          locationName: item.location?.name || "Lokasi Gedung",
+          address: item.location?.address || "Jakarta",
+          unitCount: 1,
+          technicianId: item.technician?.id,
+          technicianName: item.technician?.name,
+          scheduledDate: item.order.scheduledDate
+            ? new Date(item.order.scheduledDate).toLocaleString("id-ID", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })
+            : "-",
+          status: item.order.status,
+        }));
+        setOrders(mapped);
+      }
+    } catch (err) {
+      console.error("Failed to load orders from D1:", err);
+    }
+  };
+
+  const fetchTechnicians = async () => {
+    try {
+      const res = await fetch("/api/technicians");
+      if (res.ok) {
+        const techList = (await res.json()) as Technician[];
+        setTechnicians(techList);
+        if (techList.length > 0) {
+          setAssignedTechId(techList[0].id);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load technicians:", err);
+    }
+  };
+
+  useEffect(() => {
+    Promise.all([fetchOrders(), fetchTechnicians()]).finally(() => setLoading(false));
+  }, []);
+
+  const handleDispatch = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedOrderId) return;
+    if (!selectedOrderId || !assignedTechId) return;
 
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === selectedOrderId
-          ? { ...o, technicianName: assignedTech, status: "DISPATCHED" }
-          : o
-      )
-    );
-    setShowDispatchModal(false);
+    setSubmitting(true);
+    try {
+      const res = await fetch(`/api/orders/${selectedOrderId}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: "DISPATCHED",
+          technicianId: assignedTechId,
+        }),
+      });
+
+      if (res.ok) {
+        await fetchOrders();
+        setShowDispatchModal(false);
+      } else {
+        alert("Gagal memperbarui status order ke D1.");
+      }
+    } catch (err) {
+      console.error("Failed to dispatch technician:", err);
+      alert("Terjadi kesalahan jaringan.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const getStatusBadge = (status: ServiceOrder["status"]) => {
@@ -216,14 +258,19 @@ export function ServiceScheduleView() {
               <div>
                 <label className="block text-xs font-medium text-slate-700 mb-1.5">Teknisi Tersedia</label>
                 <select
-                  value={assignedTech}
-                  onChange={(e) => setAssignedTech(e.target.value)}
+                  value={assignedTechId}
+                  onChange={(e) => setAssignedTechId(e.target.value)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:outline-none focus:border-blue-500 focus:bg-white"
                 >
-                  <option value="Fajar Pratama (Senior Tech)">Fajar Pratama (Senior Tech) - Siap</option>
-                  <option value="Agus Santoso">Agus Santoso - Siap</option>
-                  <option value="Budi Hermawan">Budi Hermawan - Siap</option>
-                  <option value="Dian Setiawan">Dian Setiawan - Siap</option>
+                  {technicians.length > 0 ? (
+                    technicians.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name} ({t.email})
+                      </option>
+                    ))
+                  ) : (
+                    <option value="">Tidak ada teknisi tersedia</option>
+                  )}
                 </select>
               </div>
 
@@ -237,9 +284,11 @@ export function ServiceScheduleView() {
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm"
+                  disabled={submitting || !assignedTechId}
+                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-sm disabled:opacity-50"
                 >
-                  Konfirmasi Dispatch
+                  {submitting && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  Tugaskan Sekarang
                 </button>
               </div>
             </form>

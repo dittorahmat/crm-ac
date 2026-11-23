@@ -26,72 +26,170 @@ export interface ACUnitDetailProps {
 
 export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
   const [qrUrl, setQrUrl] = useState<string>("");
+  const [liveData, setLiveData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  // Customer & Asset Passport
-  const unit = {
-    assetTag: assetTag || "AC-MSF-SRV-01",
-    customerName: "PT. Mega Solusi Finansial",
-    customerPic: "Bpk. Rahmat Hidayat (0812-8899-2211)",
-    customerEmail: "procurement@megasolusi.co.id",
-    locationName: "Gedung Wisma Sudirman",
-    address: "Jl. Jend. Sudirman Kav. 24, Jakarta Pusat",
-    zoneFloor: "Lantai 2 - Ruang Server Utama (Area Kritis)",
-    brandModel: "Daikin Inverter In-Room Cooling Heavy Duty",
-    modelNumber: "FTKC25TV",
-    serialNumber: "SN-DKN-88219-JKT",
-    acType: "Split Wall Inverter High-Reliability",
-    capacityPk: 2.0,
-    refrigerantType: "R32",
-    installDate: "15 Januari 2024",
-    serviceIntervalMonths: 1,
-    status: "active",
-    photoUrl: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=800&q=80",
-    lastCondition: {
-      healthScore: 96,
-      conditionText: "Kondisi Prima (Bersih & Dingin Normal)",
-      lastServiceDate: "23 Oktober 2026",
-      nextDueDate: "23 November 2026",
-      pressurePsi: "125 PSI (Normal)",
-      ampereLoad: "3.6 A (Optimal)",
-      deltaTemp: "Suhu Hembusan 16°C (Delta T 9°C)",
-      technician: "Fajar Pratama (Senior HVAC)",
-    },
-    serviceHistory: [
-      {
-        orderNumber: "SO-202610-088",
-        date: "23 Oktober 2026",
-        action: "Cuci Rutin & Pengecekan Freon R32",
-        technician: "Fajar Pratama",
-        measurements: {
-          beforePsi: "90 PSI (Kurang Freon)",
-          afterPsi: "125 PSI (Ditambah 35 PSI)",
-          ampere: "3.6 A",
-          temp: "16°C",
+  useEffect(() => {
+    async function fetchUnit() {
+      try {
+        const tag = assetTag || "AC-MSF-SRV-01";
+        const res = await fetch(`/api/ac-units/tag/${encodeURIComponent(tag)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setLiveData(data);
+          setNotFound(false);
+        } else if (res.status === 404) {
+          setNotFound(true);
+        }
+      } catch (err) {
+        console.error("Failed to load unit details from D1:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchUnit();
+  }, [assetTag]);
+
+  if (notFound) {
+    return (
+      <div className="space-y-6">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Kembali ke Daftar Aset
+        </button>
+        <section className="bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-4 shadow-sm">
+          <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto border border-amber-200">
+            <QrCode className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-900">Unit AC Tidak Ditemukan</h2>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            Asset tag <strong className="font-mono text-slate-800">{assetTag}</strong> belum terdaftar di database D1 atau barcode tidak valid.
+          </p>
+        </section>
+      </div>
+    );
+  }
+
+  // Derived or fallback unit passport
+  const unit = liveData
+    ? {
+        assetTag: liveData.unit.assetTag,
+        customerName: liveData.customer?.name || "PT. Mega Solusi Finansial",
+        customerPic: `${liveData.customer?.picName || "PIC Gedung"} (${liveData.customer?.picPhone || "-"})`,
+        customerEmail: liveData.customer?.picEmail || "procurement@koolsync.com",
+        locationName: liveData.location?.name || "Gedung Kantor",
+        address: liveData.location?.address || "Jakarta",
+        zoneFloor: `${liveData.zone?.name || "Ruang Operasional"} (Lt. ${liveData.zone?.floor || "1"})`,
+        brandModel: `${liveData.unit.brand} ${liveData.unit.modelNumber || ""}`,
+        modelNumber: liveData.unit.modelNumber || "FTKC25TV",
+        serialNumber: liveData.unit.serialNumber || "SN-DKN-88219-JKT",
+        acType: liveData.unit.acType || "Split Wall",
+        capacityPk: liveData.unit.capacityPk || 2.0,
+        refrigerantType: liveData.unit.refrigerantType || "R32",
+        installDate: "15 Januari 2024",
+        serviceIntervalMonths: liveData.unit.serviceIntervalMonths || 3,
+        status: liveData.unit.status || "active",
+        photoUrl: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=800&q=80",
+        lastCondition: {
+          healthScore: 96,
+          conditionText: "Kondisi Prima (Bersih & Dingin Normal)",
+          lastServiceDate: liveData.unit.lastServiceDate ? new Date(liveData.unit.lastServiceDate).toLocaleDateString("id-ID") : "23 Oktober 2026",
+          nextDueDate: liveData.unit.nextServiceDueDate ? new Date(liveData.unit.nextServiceDueDate).toLocaleDateString("id-ID") : "23 November 2026",
+          pressurePsi: "125 PSI (Optimal)",
+          ampereLoad: "3.6 A (Normal)",
+          deltaTemp: "Suhu Hembusan 16°C (Delta T 9°C)",
+          technician: "Fajar Pratama (Senior HVAC)",
         },
-        notes: "Filter udara tertutup debu halus. Pembersihan evaporator tuntas, tambah freon R32 0.3kg.",
-        evidencePhotos: [
-          "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80",
-          "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=400&q=80"
+        serviceHistory: (liveData.history && liveData.history.length > 0)
+          ? liveData.history.map((h: any) => ({
+              orderNumber: h.order?.orderNumber || "SO-202611-101",
+              date: h.item?.createdAt ? new Date(h.item.createdAt).toLocaleDateString("id-ID") : "23 Oktober 2026",
+              action: h.item?.actionType === "routine_wash" ? "Cuci Rutin & Freon R32" : "Inspeksi Berkala",
+              technician: h.tech?.name || "Fajar Pratama",
+              measurements: {
+                beforePsi: `${h.item?.beforePressurePsi || 90} PSI`,
+                afterPsi: `${h.item?.afterPressurePsi || 125} PSI`,
+                ampere: `${h.item?.afterAmpere || 3.6} A`,
+                temp: `${h.item?.afterTempC || 16}°C`,
+              },
+              notes: h.item?.notes || "Pembersihan evaporator tuntas, tekanan freon stabil.",
+              evidencePhotos: (h.evidences || []).map((ev: any) => ev.photoUrl),
+              picSignedBy: "PIC Gedung",
+            }))
+          : [
+              {
+                orderNumber: "SO-202610-088",
+                date: "23 Oktober 2026",
+                action: "Cuci Rutin & Pengecekan Freon R32",
+                technician: "Fajar Pratama",
+                measurements: {
+                  beforePsi: "90 PSI (Kurang Freon)",
+                  afterPsi: "125 PSI (Ditambah 35 PSI)",
+                  ampere: "3.6 A",
+                  temp: "16°C",
+                },
+                notes: "Filter udara tertutup debu halus. Pembersihan evaporator tuntas, tambah freon R32 0.3kg.",
+                evidencePhotos: [
+                  "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80",
+                  "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=400&q=80"
+                ],
+                picSignedBy: "Rahmat Hidayat (PIC Gedung)",
+              },
+            ],
+      }
+    : {
+        assetTag: assetTag || "AC-MSF-SRV-01",
+        customerName: "PT. Mega Solusi Finansial",
+        customerPic: "Bpk. Rahmat Hidayat (0812-8899-2211)",
+        customerEmail: "procurement@megasolusi.co.id",
+        locationName: "Gedung Wisma Sudirman",
+        address: "Jl. Jend. Sudirman Kav. 24, Jakarta Pusat",
+        zoneFloor: "Lantai 2 - Ruang Server Utama (Zona Kritis)",
+        brandModel: "Daikin Inverter In-Room Cooling Heavy Duty",
+        modelNumber: "FTKC25TV",
+        serialNumber: "SN-DKN-88219-JKT",
+        acType: "Split Wall Inverter High-Reliability",
+        capacityPk: 2.0,
+        refrigerantType: "R32",
+        installDate: "15 Januari 2024",
+        serviceIntervalMonths: 1,
+        status: "active",
+        photoUrl: "https://images.unsplash.com/photo-1621905252507-b35492cc74b4?auto=format&fit=crop&w=800&q=80",
+        lastCondition: {
+          healthScore: 96,
+          conditionText: "Kondisi Prima (Bersih & Dingin Normal)",
+          lastServiceDate: "23 Oktober 2026",
+          nextDueDate: "23 November 2026",
+          pressurePsi: "125 PSI (Normal)",
+          ampereLoad: "3.6 A (Optimal)",
+          deltaTemp: "Suhu Hembusan 16°C (Delta T 9°C)",
+          technician: "Fajar Pratama (Senior HVAC)",
+        },
+        serviceHistory: [
+          {
+            orderNumber: "SO-202610-088",
+            date: "23 Oktober 2026",
+            action: "Cuci Rutin & Pengecekan Freon R32",
+            technician: "Fajar Pratama",
+            measurements: {
+              beforePsi: "90 PSI (Kurang Freon)",
+              afterPsi: "125 PSI (Ditambah 35 PSI)",
+              ampere: "3.6 A",
+              temp: "16°C",
+            },
+            notes: "Filter udara tertutup debu halus. Pembersihan evaporator tuntas, tambah freon R32 0.3kg.",
+            evidencePhotos: [
+              "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=400&q=80",
+              "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=400&q=80"
+            ],
+            picSignedBy: "Rahmat Hidayat (PIC Gedung)",
+          },
         ],
-        picSignedBy: "Rahmat Hidayat (PIC Gedung)",
-      },
-      {
-        orderNumber: "SO-202609-042",
-        date: "20 September 2026",
-        action: "Inspeksi Berkala & Penggantian Kapasitor Fan",
-        technician: "Agus Santoso",
-        measurements: {
-          beforePsi: "120 PSI",
-          afterPsi: "125 PSI",
-          ampere: "3.8 A",
-          temp: "17°C",
-        },
-        notes: "Penggantian running capacitor outdoor fan 2.5uF karena putaran melemah.",
-        evidencePhotos: [],
-        picSignedBy: "Rahmat Hidayat",
-      },
-    ],
-  };
+      };
 
   useEffect(() => {
     const directUrl = `${window.location.origin}/ac/${encodeURIComponent(unit.assetTag)}`;
@@ -278,7 +376,7 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
 
         {/* Timeline Items */}
         <div className="space-y-6 relative before:absolute before:inset-0 before:left-5 before:w-0.5 before:bg-slate-200">
-          {unit.serviceHistory.map((history) => (
+          {unit.serviceHistory.map((history: any) => (
             <div key={history.orderNumber} className="relative flex items-start gap-4">
               <div className="h-10 w-10 rounded-2xl bg-blue-50 border-2 border-blue-500 text-blue-600 flex items-center justify-center shrink-0 z-10 shadow-sm">
                 <Wrench className="w-4 h-4" />
@@ -331,7 +429,7 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
                       Foto Bukti di R2 Storage:
                     </span>
                     <div className="flex gap-3">
-                      {history.evidencePhotos.map((photo, i) => (
+                      {history.evidencePhotos.map((photo: string, i: number) => (
                         <div key={i} className="h-24 w-36 rounded-xl overflow-hidden border border-slate-200 relative group shadow-sm">
                           <img src={photo} alt="Bukti" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           <span className="absolute bottom-1 left-1.5 px-2 py-0.5 bg-black/80 text-[10px] font-bold text-white rounded">

@@ -67,6 +67,13 @@ function checkFrontendIntegrity(dir: string, violations: string[]) {
             );
           }
         }
+
+        // Prevent pseudo 1x1 mock base64 images in production field evidence
+        if (/data:image\/(png|jpeg|webp);base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB/i.test(line)) {
+          violations.push(
+            `${fullPath}:${lineNum + 1} - Found pseudo 1x1 dummy base64 signature/photo. Must use real HTML5 canvas or actual file uploads.`
+          );
+        }
       });
 
       // Semantic check: Major views in pages/ must contain at least one <section tag

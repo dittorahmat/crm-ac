@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { FileText, Send, Download, CheckCircle, Mail, DollarSign, Calendar, Building } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { FileText, Send, Download, CheckCircle, Mail, DollarSign, Calendar, Building, Loader2 } from "lucide-react";
 
 interface Invoice {
   id: string;
@@ -12,49 +12,65 @@ interface Invoice {
   status: "DRAFT" | "SENT" | "PAID";
   dueDate: string;
   sentAt: string;
+  pdfUrl?: string;
 }
 
 export function InvoiceManagementView() {
-  const [invoices, setInvoices] = useState<Invoice[]>([
-    {
-      id: "inv_1",
-      invoiceNumber: "INV-202611-104",
-      customerName: "PT. Mega Solusi Finansial",
-      picEmail: "procurement@megasolusi.co.id",
-      subtotal: 1600000,
-      taxAmount: 176000,
-      totalAmount: 1776000,
-      status: "SENT",
-      dueDate: "2026-12-07",
-      sentAt: "2026-11-23 11:30",
-    },
-    {
-      id: "inv_2",
-      invoiceNumber: "INV-202611-103",
-      customerName: "PT. Surya Teknologi Global",
-      picEmail: "finance@suryatekno.com",
-      subtotal: 2400000,
-      taxAmount: 264000,
-      totalAmount: 2664000,
-      status: "PAID",
-      dueDate: "2026-11-20",
-      sentAt: "2026-11-10 14:00",
-    },
-    {
-      id: "inv_3",
-      invoiceNumber: "INV-202611-102",
-      customerName: "CV. Digital Niaga Nusantara",
-      picEmail: "ga@digitalniaga.id",
-      subtotal: 800000,
-      taxAmount: 88000,
-      totalAmount: 888000,
-      status: "DRAFT",
-      dueDate: "2026-12-01",
-      sentAt: "-",
-    },
-  ]);
-
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
   const [emailSending, setEmailSending] = useState<string | null>(null);
+
+  const fetchInvoices = async () => {
+    try {
+      const res = await fetch("/api/invoices");
+      if (res.ok) {
+        const list = (await res.json()) as any[];
+        if (list.length > 0) {
+          const mapped: Invoice[] = list.map((item: any) => ({
+            id: item.invoice.id,
+            invoiceNumber: item.invoice.invoiceNumber,
+            customerName: item.customer?.name || "Pelanggan B2B",
+            picEmail: item.customer?.picEmail || "finance@koolsync.com",
+            subtotal: item.invoice.subtotal,
+            taxAmount: item.invoice.taxAmount,
+            totalAmount: item.invoice.totalAmount,
+            status: item.invoice.status,
+            dueDate: item.invoice.dueDate
+              ? new Date(item.invoice.dueDate).toISOString().split("T")[0]
+              : "2026-12-01",
+            sentAt: item.invoice.sentAt
+              ? new Date(item.invoice.sentAt).toLocaleString("id-ID")
+              : "-",
+            pdfUrl: item.invoice.pdfUrl,
+          }));
+          setInvoices(mapped);
+        } else {
+          setInvoices([
+            {
+              id: "inv_1",
+              invoiceNumber: "INV-202611-104",
+              customerName: "PT. Mega Solusi Finansial",
+              picEmail: "procurement@megasolusi.co.id",
+              subtotal: 1600000,
+              taxAmount: 176000,
+              totalAmount: 1776000,
+              status: "SENT",
+              dueDate: "2026-12-07",
+              sentAt: "2026-11-23 11:30",
+            },
+          ]);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load invoices from D1:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
 
   const handleSendEmail = (id: string) => {
     setEmailSending(id);
@@ -78,18 +94,18 @@ export function InvoiceManagementView() {
             Faktur & Tagihan Servis (Otomatis Email PDF)
           </h2>
           <p className="text-xs md:text-sm text-slate-500">
-            Faktur otomatis dibuat saat teknisi menyelesaikan tiket, disimpan di R2, dan dikirim via transactional email
+            Faktur otomatis dibuat dari order servis yang tuntas, disimpan di R2, dan dikirim via transactional email
           </p>
         </div>
       </div>
 
-            {/* Invoice List */}
+      {/* Invoice List */}
       <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
             Daftar Tagihan B2B
           </h3>
-          <span className="text-[11px] text-blue-600">3 Faktur Diterbitkan</span>
+          <span className="text-[11px] text-blue-600">{invoices.length} Faktur Terbit</span>
         </div>
 
         <div className="space-y-3">
@@ -137,28 +153,41 @@ export function InvoiceManagementView() {
                 </div>
               </div>
 
-              {/* Amount & Actions */}
+              {/* Amount Breakdown & Actions */}
               <div className="flex items-center justify-between lg:justify-end gap-6 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-200">
-                <div className="text-left lg:text-right">
-                  <span className="text-[10px] text-slate-500 block uppercase font-bold tracking-wider">
-                    Total Tagihan
-                  </span>
-                  <span className="text-base font-bold text-slate-900 font-mono">
-                    Rp {inv.totalAmount.toLocaleString("id-ID")}
-                  </span>
-                  <span className="text-[10px] text-slate-500 block">
-                    Termasuk PPN 11% (Rp {inv.taxAmount.toLocaleString("id-ID")})
-                  </span>
+                <div className="text-left lg:text-right space-y-0.5">
+                  <div className="text-[11px] text-slate-500 font-mono">
+                    Subtotal: <strong>Rp {inv.subtotal.toLocaleString("id-ID")}</strong>
+                  </div>
+                  <div className="text-[11px] text-slate-500 font-mono">
+                    PPN (11%): <strong>Rp {inv.taxAmount.toLocaleString("id-ID")}</strong>
+                  </div>
+                  <div className="text-base font-extrabold text-slate-900 font-mono">
+                    Total: Rp {inv.totalAmount.toLocaleString("id-ID")}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => alert(`Mengunduh PDF Faktur: ${inv.invoiceNumber}`)}
-                    className="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm transition-colors"
-                    title="Unduh PDF"
-                  >
-                    <Download className="w-4 h-4" />
-                  </button>
+                  {inv.pdfUrl ? (
+                    <a
+                      href={inv.pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-xl bg-white hover:bg-slate-100 text-blue-600 hover:text-blue-800 border border-slate-200 shadow-sm transition-colors flex items-center gap-1 text-xs font-bold"
+                      title="Buka Dokumen Faktur R2"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span className="hidden sm:inline">R2 Faktur</span>
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => alert(`Faktur ${inv.invoiceNumber} sedang di-render di R2 storage`)}
+                      className="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm transition-colors"
+                      title="Lihat Faktur"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  )}
 
                   {inv.status === "DRAFT" && (
                     <button

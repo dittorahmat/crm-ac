@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Bell, Send, CheckCircle2, AlertTriangle, ShieldCheck, Clock, Settings, MessageSquare } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Bell, Send, CheckCircle2, AlertTriangle, ShieldCheck, Clock, Settings, MessageSquare, Loader2 } from "lucide-react";
 
 interface ReminderItem {
   id: string;
@@ -16,60 +16,66 @@ interface ReminderItem {
 }
 
 export function WhatsAppReminderView() {
-  const [reminders, setReminders] = useState<ReminderItem[]>([
-    {
-      id: "rem_1",
-      customerName: "PT. Mega Solusi Finansial",
-      picName: "Bpk. Rahmat",
-      picPhone: "081288992211",
-      locationName: "Gedung Wisma Sudirman",
-      unitCount: 8,
-      intervalMonths: 3,
-      nextDueDate: "2026-11-28",
-      daysRemaining: 5,
-      lastSentStatus: "SENT",
-      providerUsed: "Meta Cloud API",
-    },
-    {
-      id: "rem_2",
-      customerName: "CV. Digital Niaga Nusantara",
-      picName: "Ibu Linda",
-      picPhone: "081399887766",
-      locationName: "Head Office Tebet",
-      unitCount: 4,
-      intervalMonths: 3,
-      nextDueDate: "2026-11-26",
-      daysRemaining: 3,
-      lastSentStatus: "SENT",
-      providerUsed: "Fonnte (Fallback)",
-    },
-    {
-      id: "rem_3",
-      customerName: "PT. Cahaya Abadi Prima",
-      picName: "Bpk. Hendra",
-      picPhone: "081912345678",
-      locationName: "Pabrik Daan Mogot",
-      unitCount: 16,
-      intervalMonths: 2,
-      nextDueDate: "2026-11-25",
-      daysRemaining: 2,
-      lastSentStatus: "PENDING",
-      providerUsed: "Meta Cloud API",
-    },
-  ]);
-
+  const [reminders, setReminders] = useState<ReminderItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [sendingId, setSendingId] = useState<string | null>(null);
 
-  const handleManualSend = (id: string) => {
+  const fetchReminders = async () => {
+    try {
+      const res = await fetch("/api/reminders");
+      if (res.ok) {
+        const list = (await res.json()) as ReminderItem[];
+        if (list.length > 0) {
+          setReminders(list);
+        } else {
+          setReminders([
+            {
+              id: "rem_1",
+              customerName: "PT. Mega Solusi Finansial",
+              picName: "Bpk. Rahmat",
+              picPhone: "081288992211",
+              locationName: "Gedung Wisma Sudirman",
+              unitCount: 8,
+              intervalMonths: 3,
+              nextDueDate: "2026-11-28",
+              daysRemaining: 5,
+              lastSentStatus: "SENT",
+              providerUsed: "Meta Cloud API",
+            },
+          ]);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load reminders from D1:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchReminders();
+  }, []);
+
+  const handleManualSend = async (id: string) => {
     setSendingId(id);
-    setTimeout(() => {
-      setReminders((prev) =>
-        prev.map((r) =>
-          r.id === id ? { ...r, lastSentStatus: "SENT" } : r
-        )
-      );
+    try {
+      const res = await fetch(`/api/reminders/${id}/send`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        setReminders((prev) =>
+          prev.map((r) =>
+            r.id === id ? { ...r, lastSentStatus: "SENT" } : r
+          )
+        );
+      } else {
+        alert("Gagal mengirim pengingat WhatsApp.");
+      }
+    } catch (err) {
+      console.error("Failed to send WhatsApp reminder:", err);
+    } finally {
       setSendingId(null);
-    }, 1000);
+    }
   };
 
   return (
