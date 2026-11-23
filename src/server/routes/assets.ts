@@ -107,7 +107,74 @@ assetsRouter.post("/locations", async (c) => {
   return c.json({ id, ...parsed }, 201);
 });
 
-// Zones
+// Technicians list
+assetsRouter.get("/technicians", async (c) => {
+  const db = c.get("db");
+  const list = await db
+    .select({
+      id: schema.users.id,
+      name: schema.users.name,
+      email: schema.users.email,
+      role: schema.users.role,
+      phone: schema.users.phone,
+    })
+    .from(schema.users)
+    .where(eq(schema.users.role, "technician"))
+    .all();
+  return c.json(list);
+});
+
+// AC Unit by asset tag (with service history & customer info)
+assetsRouter.get("/ac-units/tag/:tag", async (c) => {
+  const db = c.get("db");
+  const tag = c.req.param("tag");
+  const [row] = await db
+    .select({
+      unit: schema.acUnits,
+      customer: schema.customers,
+      location: schema.locations,
+      zone: schema.zones,
+    })
+    .from(schema.acUnits)
+    .leftJoin(schema.customers, eq(schema.acUnits.customerId, schema.customers.id))
+    .leftJoin(schema.locations, eq(schema.acUnits.locationId, schema.locations.id))
+    .leftJoin(schema.zones, eq(schema.acUnits.zoneId, schema.zones.id))
+    .where(eq(schema.acUnits.assetTag, tag))
+    .all();
+
+  if (!row) {
+    return c.json({ error: "AC Unit not found" }, 404);
+  }
+
+  // Get service items history for this unit
+  const history = await db
+    .select({
+      item: schema.serviceItems,
+      order: schema.serviceOrders,
+      tech: schema.users,
+    })
+    .from(schema.serviceItems)
+    .leftJoin(schema.serviceOrders, eq(schema.serviceItems.serviceOrderId, schema.serviceOrders.id))
+    .leftJoin(schema.users, eq(schema.serviceOrders.technicianId, schema.users.id))
+    .where(eq(schema.serviceItems.acUnitId, row.unit.id))
+    .all();
+
+  // Get evidence for these items
+  const itemIds = history.map((h: any) => h.item.id);
+  let evidences: any[] = [];
+  if (itemIds.length > 0) {
+    evidences = await db.select().from(schema.serviceEvidences).all();
+    evidences = evidences.filter((ev: any) => itemIds.includes(ev.serviceItemId));
+  }
+
+  return c.json({
+    ...row,
+    history: history.map((h: any) => ({
+      ...h,
+      evidences: evidences.filter((ev: any) => ev.serviceItemId === h.item.id),
+    })),
+  });
+});
 assetsRouter.get("/zones", async (c) => {
   const db = c.get("db");
   const locationId = c.req.query("locationId");
