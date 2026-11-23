@@ -91,3 +91,70 @@ ordersRouter.patch("/orders/:id/status", async (c) => {
   await db.update(schema.serviceOrders).set(updateValues).where(eq(schema.serviceOrders.id, id));
   return c.json({ success: true, status });
 });
+
+// Analytics aggregate overview for Command Center
+ordersRouter.get("/analytics", async (c) => {
+  const db = c.get("db");
+
+  const [units, orders, invoices] = await Promise.all([
+    db.select().from(schema.acUnits).all(),
+    db.select().from(schema.serviceOrders).all(),
+    db.select().from(schema.invoices).all(),
+  ]);
+
+  const activeUnits = units.filter((u: any) => u.status === "active").length;
+  const completedOrders = orders.filter((o: any) => o.status === "COMPLETED").length;
+  const dispatchedOrders = orders.filter((o: any) => o.status === "DISPATCHED" || o.status === "IN_PROGRESS").length;
+  const totalRevenue = invoices.reduce((acc: number, inv: any) => acc + (inv.totalAmount || 0), 0);
+
+  return c.json({
+    totalUnits: units.length,
+    activeUnits,
+    completedOrders,
+    dispatchedOrders,
+    totalRevenue,
+    invoiceCount: invoices.length,
+  });
+});
+
+// WhatsApp Reminders list
+ordersRouter.get("/reminders", async (c) => {
+  const db = c.get("db");
+
+  const list = await db
+    .select({
+      unit: schema.acUnits,
+      customer: schema.customers,
+      location: schema.locations,
+    })
+    .from(schema.acUnits)
+    .innerJoin(schema.customers, eq(schema.acUnits.customerId, schema.customers.id))
+    .innerJoin(schema.locations, eq(schema.acUnits.locationId, schema.locations.id))
+    .all();
+
+  const logs = await db.select().from(schema.whatsappLogs).all();
+
+  const results = list.map((item: any) => {
+    const customerLogs = logs.filter((l: any) => l.customerId === item.customer.id);
+    const lastLog = customerLogs.length > 0 ? customerLogs[customerLogs.length - 1] : null;
+
+    const dueDate = item.unit.nextServiceDueDate ? new Date(item.unit.nextServiceDueDate) : new Date();
+    const diffDays = Math.ceil((dueDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+
+    return {
+      id: `rem_${item.unit.id}`,
+      customerName: item.customer.name,
+      picName: item.customer.picName,
+      picPhone: item.customer.picPhone,
+      locationName: item.location.name,
+      unitCount: 1,
+      intervalMonths: item.unit.serviceIntervalMonths || 3,
+      nextDueDate: dueDate.toISOString().split("T")[0],
+      daysRemaining: diffDays,
+      lastSentStatus: lastLog ? lastLog.status : "PENDING",
+      providerUsed: lastLog ? (lastLog.provider === "meta" ? "Meta Cloud API" : "Fonnte (Fallback)") : "Meta Cloud API",
+    };
+  });
+
+  return c.json(results);
+});

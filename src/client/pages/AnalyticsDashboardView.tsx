@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { 
   BarChart3, 
   TrendingUp, 
@@ -14,6 +14,32 @@ import {
 } from "lucide-react";
 
 export function AnalyticsDashboardView() {
+  const [metrics, setMetrics] = useState({
+    totalUnits: 148,
+    activeUnits: 142,
+    completedOrders: 3,
+    dispatchedOrders: 1,
+    totalRevenue: 4440000,
+    invoiceCount: 2,
+  });
+
+  useEffect(() => {
+    async function loadMetrics() {
+      try {
+        const res = await fetch("/api/analytics");
+        if (res.ok) {
+          const data = (await res.json()) as any;
+          if (data && data.totalUnits > 0) {
+            setMetrics(data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load analytics from D1:", err);
+      }
+    }
+    loadMetrics();
+  }, []);
+
   const technicians = [
     {
       name: "Fajar Pratama",
