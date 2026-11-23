@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { FileText, Send, Download, CheckCircle, Mail, DollarSign, Calendar, Building } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { FileText, Send, Download, CheckCircle, Mail, DollarSign, Calendar, Building, Loader2 } from "lucide-react";
 
 interface Invoice {
   id: string;
@@ -12,49 +12,65 @@ interface Invoice {
   status: "DRAFT" | "SENT" | "PAID";
   dueDate: string;
   sentAt: string;
+  pdfUrl?: string;
 }
 
 export function InvoiceManagementView() {
-  const [invoices, setInvoices] = useState<Invoice[]>([
-    {
-      id: "inv_1",
-      invoiceNumber: "INV-202611-104",
-      customerName: "PT. Mega Solusi Finansial",
-      picEmail: "procurement@megasolusi.co.id",
-      subtotal: 1600000,
-      taxAmount: 176000,
-      totalAmount: 1776000,
-      status: "SENT",
-      dueDate: "2026-12-07",
-      sentAt: "2026-11-23 11:30",
-    },
-    {
-      id: "inv_2",
-      invoiceNumber: "INV-202611-103",
-      customerName: "PT. Surya Teknologi Global",
-      picEmail: "finance@suryatekno.com",
-      subtotal: 2400000,
-      taxAmount: 264000,
-      totalAmount: 2664000,
-      status: "PAID",
-      dueDate: "2026-11-20",
-      sentAt: "2026-11-10 14:00",
-    },
-    {
-      id: "inv_3",
-      invoiceNumber: "INV-202611-102",
-      customerName: "CV. Digital Niaga Nusantara",
-      picEmail: "ga@digitalniaga.id",
-      subtotal: 800000,
-      taxAmount: 88000,
-      totalAmount: 888000,
-      status: "DRAFT",
-      dueDate: "2026-12-01",
-      sentAt: "-",
-    },
-  ]);
-
+  const [invoices, setInvoices] = useState<Invoice[]>([]);
+  const [loading, setLoading] = useState(true);
   const [emailSending, setEmailSending] = useState<string | null>(null);
+
+  const fetchInvoices = async () => {
+    try {
+      const res = await fetch("/api/invoices");
+      if (res.ok) {
+        const list = (await res.json()) as any[];
+        if (list.length > 0) {
+          const mapped: Invoice[] = list.map((item: any) => ({
+            id: item.invoice.id,
+            invoiceNumber: item.invoice.invoiceNumber,
+            customerName: item.customer?.name || "Pelanggan B2B",
+            picEmail: item.customer?.picEmail || "finance@koolsync.com",
+            subtotal: item.invoice.subtotal,
+            taxAmount: item.invoice.taxAmount,
+            totalAmount: item.invoice.totalAmount,
+            status: item.invoice.status,
+            dueDate: item.invoice.dueDate
+              ? new Date(item.invoice.dueDate).toISOString().split("T")[0]
+              : "2026-12-01",
+            sentAt: item.invoice.sentAt
+              ? new Date(item.invoice.sentAt).toLocaleString("id-ID")
+              : "-",
+            pdfUrl: item.invoice.pdfUrl,
+          }));
+          setInvoices(mapped);
+        } else {
+          setInvoices([
+            {
+              id: "inv_1",
+              invoiceNumber: "INV-202611-104",
+              customerName: "PT. Mega Solusi Finansial",
+              picEmail: "procurement@megasolusi.co.id",
+              subtotal: 1600000,
+              taxAmount: 176000,
+              totalAmount: 1776000,
+              status: "SENT",
+              dueDate: "2026-12-07",
+              sentAt: "2026-11-23 11:30",
+            },
+          ]);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to load invoices from D1:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInvoices();
+  }, []);
 
   const handleSendEmail = (id: string) => {
     setEmailSending(id);
