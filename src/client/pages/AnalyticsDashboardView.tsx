@@ -135,7 +135,7 @@ export function AnalyticsDashboardView() {
               Rp 21.600.000
             </div>
             <div className="pt-3 border-t border-slate-800/80 text-xs text-slate-400">
-              Estimasi 62 unit AC di 5 gedung klien yang masuk jadwal reminder
+              Estimasi 62 unit AC di 5 gedung customer yang masuk jadwal reminder
             </div>
           </div>
         </div>
