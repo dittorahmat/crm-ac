@@ -2,8 +2,14 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
 import { drizzle } from "drizzle-orm/d1";
+import { lte, eq } from "drizzle-orm";
 import * as schema from "./db/schema";
 import { createAuth } from "./auth";
+import { assetsRouter } from "./routes/assets";
+import { ordersRouter } from "./routes/orders";
+import { evidenceRouter } from "./routes/evidence";
+import { invoicesRouter } from "./routes/invoices";
+import { ResilientWhatsAppService } from "./services/whatsapp";
 
 type Bindings = {
   DB: D1Database;
@@ -33,7 +39,7 @@ app.use(
     origin: (origin) => origin || "*",
     credentials: true,
     allowHeaders: ["Content-Type", "Authorization", "Cookie"],
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowMethods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   })
 );
 
@@ -70,6 +76,27 @@ app.on(["POST", "GET"], "/api/auth/**", async (c) => {
   return auth.handler(c.req.raw);
 });
 
+// Mount Sub-routers
+app.route("/api", assetsRouter);
+app.route("/api", ordersRouter);
+app.route("/api", evidenceRouter);
+app.route("/api", invoicesRouter);
+
+// R2 Storage object server
+app.get("/api/storage/*", async (c) => {
+  const r2 = c.env.R2;
+  if (!r2) return c.text("R2 binding not configured", 500);
+
+  const key = c.req.path.replace("/api/storage/", "");
+  const object = await r2.get(key);
+  if (!object) return c.text("Object not found in R2", 404);
+
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  headers.set("etag", object.httpEtag);
+  return new Response(object.body, { headers });
+});
+
 // Health check & Version
 app.get("/api/health", (c) => {
   return c.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -86,6 +113,60 @@ export default {
   fetch: app.fetch,
   async scheduled(event: ScheduledEvent, env: Bindings, ctx: ExecutionContext) {
     console.log("Cloudflare Cron Trigger fired at:", new Date().toISOString(), event.cron);
-    // WhatsApp routine maintenance reminder check will hook here
+    if (!env.DB) return;
+
+    const db = drizzle(env.DB, { schema });
+    const waService = new ResilientWhatsAppService({
+      META_WA_TOKEN: env.META_WA_TOKEN,
+      META_PHONE_NUMBER_ID: env.META_PHONE_NUMBER_ID,
+      FONNTE_TOKEN: env.FONNTE_TOKEN,
+    });
+
+    const now = new Date();
+    // Scan ACUnits whose next service due date is within next 7 days
+    const upcomingUnits = await db
+      .select({
+        unit: schema.acUnits,
+        customer: schema.customers,
+        location: schema.locations,
+      })
+      .from(schema.acUnits)
+      .innerJoin(schema.customers, eq(schema.acUnits.customerId, schema.customers.id))
+      .innerJoin(schema.locations, eq(schema.acUnits.locationId, schema.locations.id))
+      .where(lte(schema.acUnits.nextServiceDueDate, new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)))
+      .all();
+
+    for (const item of upcomingUnits) {
+      if (!item.customer.picPhone) continue;
+
+      try {
+        const dueDateStr = item.unit.nextServiceDueDate ? new Date(item.unit.nextServiceDueDate).toLocaleDateString("id-ID") : "segera";
+        const result = await waService.dispatch({
+          toPhone: item.customer.picPhone,
+          customerName: item.customer.name,
+          messageType: "routine_reminder",
+          params: {
+            unitCount: 1,
+            locationName: item.location.name,
+            dueDate: dueDateStr,
+            portalLink: `https://crm-ac.tech1solusi.workers.dev/ac/${item.unit.assetTag}`,
+          },
+        });
+
+        // Log delivery status into D1
+        await db.insert(schema.whatsappLogs).values({
+          id: `walog_${Date.now()}_${Math.random().toString(36).substring(7)}`,
+          customerId: item.customer.id,
+          recipientPhone: item.customer.picPhone,
+          messageType: "routine_reminder",
+          provider: result.provider as any,
+          status: result.success ? "SENT" : "FAILED",
+          errorMessage: result.error || null,
+          createdAt: new Date(),
+        });
+      } catch (err: any) {
+        console.error("Failed to dispatch automated WhatsApp reminder:", err);
+      }
+    }
   },
 };

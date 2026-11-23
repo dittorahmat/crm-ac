@@ -7,7 +7,8 @@ export const evidenceRouter = new Hono<{
   Variables: { db: any; user: any };
 }>();
 
-// Direct photo evidence upload to R2
+// Direct photo evidence upload to R2 conforming strictly to ADR-0003:
+// evidence/{serviceOrderId}/{acUnitId}/{evidenceType}_{timestamp}.webp
 evidenceRouter.post("/upload", async (c) => {
   const formData = await c.req.parseBody();
   const file = formData["file"] as File | string;
@@ -18,9 +19,20 @@ evidenceRouter.post("/upload", async (c) => {
     return c.json({ error: "No file provided" }, 400);
   }
 
-  const r2 = c.env.R2;
-  const key = `evidence/${serviceItemId}/${evidenceType}_${Date.now()}.webp`;
+  const db = c.get("db");
 
+  // Query linked service order and ac unit to construct canonical ADR-0003 path
+  const [item] = await db
+    .select()
+    .from(schema.serviceItems)
+    .where(eq(schema.serviceItems.id, serviceItemId))
+    .all();
+
+  const serviceOrderId = item ? item.serviceOrderId : "general";
+  const acUnitId = item ? item.acUnitId : "unit";
+  const key = `evidence/${serviceOrderId}/${acUnitId}/${evidenceType}_${Date.now()}.webp`;
+
+  const r2 = c.env.R2;
   if (r2) {
     const arrayBuffer = await file.arrayBuffer();
     await r2.put(key, arrayBuffer, {
@@ -31,7 +43,6 @@ evidenceRouter.post("/upload", async (c) => {
   const photoUrl = `/api/storage/${key}`;
 
   // Save evidence to D1
-  const db = c.get("db");
   const evidenceId = `ev_${Date.now()}`;
   await db.insert(schema.serviceEvidences).values({
     id: evidenceId,
@@ -60,6 +71,8 @@ evidenceRouter.post("/service-items/:id/measurements", async (c) => {
       afterAmpere: body.afterAmpere,
       beforeTempC: body.beforeTempC,
       afterTempC: body.afterTempC,
+      laborCost: body.laborCost || 150000,
+      partsCost: body.partsCost || 0,
       status: "DONE",
       notes: body.notes,
     })

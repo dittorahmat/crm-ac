@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { LoginPage } from "./pages/LoginPage";
 import { CustomerAssetsView } from "./pages/CustomerAssetsView";
 import { BarcodePrintView } from "./pages/BarcodePrintView";
@@ -20,8 +20,7 @@ import {
   LogOut,
   User,
   Menu,
-  X,
-  ShieldAlert
+  X
 } from "lucide-react";
 
 export function App() {
@@ -36,8 +35,7 @@ export function App() {
   });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Check if current URL is directly scanning an AC barcode e.g. /ac/AC-MSF-SRV-01
-  React.useEffect(() => {
+  useEffect(() => {
     const path = window.location.pathname;
     if (path.startsWith("/ac/")) {
       const tag = decodeURIComponent(path.replace("/ac/", ""));
@@ -64,7 +62,7 @@ export function App() {
 
   const navItems = [
     { id: "dashboard", label: "Dashboard & Metrik", icon: BarChart3 },
-    { id: "customers", label: "Aset & Klien B2B", icon: Building2 },
+    { id: "customers", label: "Aset & Customer B2B", icon: Building2 },
     { id: "tags", label: "Barcode Tom & Jerry", icon: QrCode },
     { id: "schedules", label: "Penjadwalan Teknisi", icon: CalendarClock },
     { id: "service_flow", label: "Tracking Lapangan (Real-time)", icon: ClipboardCheck },
@@ -193,9 +191,6 @@ export function App() {
             <ACUnitDetailView
               assetTag={inspectingTag}
               onBack={() => setActiveTab("customers")}
-              onScheduleService={(tag) => {
-                setActiveTab("schedules");
-              }}
             />
           )}
         </div>

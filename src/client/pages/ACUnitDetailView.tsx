@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import QRCode from "qrcode";
 import { 
   Building2, 
@@ -11,14 +11,11 @@ import {
   Thermometer, 
   Zap, 
   ShieldCheck, 
-  AlertTriangle, 
   CheckCircle2, 
   Wrench, 
-  FileText, 
   QrCode,
   ArrowLeft,
-  Clock,
-  UserCheck
+  Clock
 } from "lucide-react";
 
 export interface ACUnitDetailProps {
@@ -27,15 +24,15 @@ export interface ACUnitDetailProps {
   onScheduleService?: (unitTag: string) => void;
 }
 
-export function ACUnitDetailView({ assetTag, onBack, onScheduleService }: ACUnitDetailProps) {
+export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
   const [qrUrl, setQrUrl] = useState<string>("");
 
-  // Comprehensive Asset Identity & Telemetry data
+  // Customer & Asset Passport
   const unit = {
     assetTag: assetTag || "AC-MSF-SRV-01",
-    clientName: "PT. Mega Solusi Finansial",
-    clientPic: "Bpk. Rahmat Hidayat (0812-8899-2211)",
-    clientEmail: "procurement@megasolusi.co.id",
+    customerName: "PT. Mega Solusi Finansial",
+    customerPic: "Bpk. Rahmat Hidayat (0812-8899-2211)",
+    customerEmail: "procurement@megasolusi.co.id",
     locationName: "Gedung Wisma Sudirman",
     address: "Jl. Jend. Sudirman Kav. 24, Jakarta Pusat",
     zoneFloor: "Lantai 2 - Ruang Server Utama (Area Kritis)",
@@ -46,19 +43,18 @@ export function ACUnitDetailView({ assetTag, onBack, onScheduleService }: ACUnit
     capacityPk: 2.0,
     refrigerantType: "R32",
     installDate: "15 Januari 2024",
-    serviceIntervalMonths: 1, // Routine interval: 1 month for critical server room
-    status: "active", // active, needs_service, maintenance
+    serviceIntervalMonths: 1,
+    status: "active",
     lastCondition: {
       healthScore: 96,
       conditionText: "Kondisi Prima (Bersih & Dingin Normal)",
       lastServiceDate: "23 Oktober 2026",
-      nextDueDate: "23 November 2026 (Hari Ini)",
+      nextDueDate: "23 November 2026",
       pressurePsi: "125 PSI (Normal)",
       ampereLoad: "3.6 A (Optimal)",
       deltaTemp: "Suhu Hembusan 16°C (Delta T 9°C)",
       technician: "Fajar Pratama (Senior HVAC)",
     },
-    // Complete Service Audit Trail per AC Unit
     serviceHistory: [
       {
         orderNumber: "SO-202610-088",
@@ -93,25 +89,10 @@ export function ACUnitDetailView({ assetTag, onBack, onScheduleService }: ACUnit
         evidencePhotos: [],
         picSignedBy: "Rahmat Hidayat",
       },
-      {
-        orderNumber: "SO-202608-019",
-        date: "18 Agustus 2026",
-        action: "Cuci Chemical Bersih Total",
-        technician: "Fajar Pratama",
-        measurements: {
-          beforePsi: "115 PSI",
-          afterPsi: "125 PSI",
-          ampere: "3.7 A",
-          temp: "16.5°C",
-        },
-        notes: "Cuci kimia evaporator dan pembersihan talang air drainase untuk mencegah kebocoran air.",
-        evidencePhotos: [],
-        picSignedBy: "Rahmat Hidayat",
-      },
     ],
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     const directUrl = `${window.location.origin}/ac/${encodeURIComponent(unit.assetTag)}`;
     QRCode.toDataURL(directUrl, { margin: 1, width: 180 }).then(setQrUrl).catch(console.error);
   }, [unit.assetTag]);
@@ -161,15 +142,15 @@ export function ACUnitDetailView({ assetTag, onBack, onScheduleService }: ACUnit
               </p>
             </div>
 
-            {/* Client & Location Breakdown */}
+            {/* Customer & Location Breakdown */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-xs">
               <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 space-y-1">
                 <span className="text-[10px] text-teal-400 font-bold uppercase tracking-wider flex items-center gap-1">
                   <Building2 className="w-3 h-3" />
-                  Klien Korporat B2B
+                  Customer Korporat
                 </span>
-                <p className="font-bold text-white text-sm">{unit.clientName}</p>
-                <p className="text-slate-400">{unit.clientPic}</p>
+                <p className="font-bold text-white text-sm">{unit.customerName}</p>
+                <p className="text-slate-400">{unit.customerPic}</p>
               </div>
 
               <div className="p-3 rounded-2xl bg-slate-950/80 border border-slate-800/80 space-y-1">
@@ -280,14 +261,12 @@ export function ACUnitDetailView({ assetTag, onBack, onScheduleService }: ACUnit
 
         {/* Timeline Items */}
         <div className="space-y-6 relative before:absolute before:inset-0 before:left-5 before:w-0.5 before:bg-slate-800">
-          {unit.serviceHistory.map((history, idx) => (
+          {unit.serviceHistory.map((history) => (
             <div key={history.orderNumber} className="relative flex items-start gap-4">
-              {/* Timeline Dot */}
               <div className="h-10 w-10 rounded-2xl bg-slate-900 border-2 border-teal-500 text-teal-400 flex items-center justify-center shrink-0 z-10 shadow-lg">
                 <Wrench className="w-4 h-4" />
               </div>
 
-              {/* Card Body */}
               <div className="flex-1 bg-slate-950 border border-slate-800/80 rounded-2xl p-5 space-y-3 hover:border-slate-700 transition-all">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                   <div className="flex items-center gap-2.5">
@@ -306,7 +285,6 @@ export function ACUnitDetailView({ assetTag, onBack, onScheduleService }: ACUnit
                   {history.notes}
                 </p>
 
-                {/* Measurements Summary */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                   <div className="p-2 rounded-xl bg-slate-900/40 border border-slate-800/50">
                     <span className="text-[10px] text-slate-500 block">Freon Tekanan</span>
@@ -328,7 +306,6 @@ export function ACUnitDetailView({ assetTag, onBack, onScheduleService }: ACUnit
                   </div>
                 </div>
 
-                {/* Photo Evidence Thumbnails */}
                 {history.evidencePhotos.length > 0 && (
                   <div className="pt-2">
                     <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider mb-2 block">

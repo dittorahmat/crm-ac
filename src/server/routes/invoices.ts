@@ -42,14 +42,47 @@ invoicesRouter.post("/invoices/generate", async (c) => {
     .where(eq(schema.customers.id, order.customerId))
     .all();
 
-  const invoiceNumber = `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}-${Math.floor(100 + Math.random() * 900)}`;
-  const subtotal = 1450000; // Total labor + parts
+  // Dynamically calculate subtotal from associated service items
+  const items = await db
+    .select()
+    .from(schema.serviceItems)
+    .where(eq(schema.serviceItems.serviceOrderId, serviceOrderId))
+    .all();
+
+  let subtotal = 0;
+  for (const item of items) {
+    subtotal += (item.laborCost || 150000) + (item.partsCost || 0);
+  }
+  if (subtotal === 0) {
+    subtotal = 350000; // minimum baseline service charge if items weren't priced yet
+  }
+
   const tax = Math.round(subtotal * 0.11);
   const total = subtotal + tax;
 
-  const pdfKey = `invoices/${invoiceNumber}.pdf`;
-  const pdfUrl = `/api/storage/${pdfKey}`;
+  const invoiceNumber = `INV-${new Date().getFullYear()}${String(new Date().getMonth() + 1).padStart(2, "0")}-${Math.floor(100 + Math.random() * 900)}`;
 
+  // Store minimal printable HTML/PDF descriptor in R2
+  const pdfKey = `invoices/${invoiceNumber}.html`;
+  const r2 = c.env.R2;
+  if (r2) {
+    const invoiceHtml = `<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Faktur #${invoiceNumber}</title></head>
+<body style="font-family: sans-serif; padding: 40px; color: #1e293b;">
+  <h2>Faktur Tagihan Servis AC - KoolSync</h2>
+  <p><strong>No. Faktur:</strong> ${invoiceNumber}</p>
+  <p><strong>Pelanggan:</strong> ${customer?.name || "Corporate Customer"}</p>
+  <p><strong>Subtotal Jasa & Part:</strong> Rp ${subtotal.toLocaleString("id-ID")}</p>
+  <p><strong>PPN (11%):</strong> Rp ${tax.toLocaleString("id-ID")}</p>
+  <hr/>
+  <h3>Total: Rp ${total.toLocaleString("id-ID")}</h3>
+</body>
+</html>`;
+    await r2.put(pdfKey, invoiceHtml, { httpMetadata: { contentType: "text/html" } });
+  }
+
+  const pdfUrl = `/api/storage/${pdfKey}`;
   const dueDate = new Date();
   dueDate.setDate(dueDate.getDate() + 14); // 14 days payment term
 
@@ -60,7 +93,7 @@ invoicesRouter.post("/invoices/generate", async (c) => {
     id: invoiceId,
     invoiceNumber,
     serviceOrderId,
-    customerId: customer.id,
+    customerId: customer ? customer.id : order.customerId,
     subtotal,
     taxAmount: tax,
     totalAmount: total,
@@ -74,7 +107,7 @@ invoicesRouter.post("/invoices/generate", async (c) => {
   // Transactional Email dispatch via Resend
   let emailDispatched = false;
   const resendApiKey = c.env.RESEND_API_KEY;
-  if (resendApiKey && customer.picEmail) {
+  if (resendApiKey && customer?.picEmail) {
     try {
       const emailResp = await fetch("https://api.resend.com/emails", {
         method: "POST",
@@ -88,9 +121,8 @@ invoicesRouter.post("/invoices/generate", async (c) => {
           subject: `Faktur Tagihan Servis AC #${invoiceNumber} - ${customer.name}`,
           html: `
             <h3>Halo ${customer.picName},</h3>
-            <p>Terima kasih atas kepercayaan Anda menggunakan jasa servis dan perawatan AC KoolSync.</p>
-            <p>Faktur tagihan <strong>#${invoiceNumber}</strong> sebesar <strong>Rp ${total.toLocaleString("id-ID")}</strong> telah diterbitkan dan dapat diunduh melalui tautan berikut:</p>
-            <p><a href="https://crm.koolsync.com${pdfUrl}">Unduh Faktur PDF #${invoiceNumber}</a></p>
+            <p>Faktur tagihan servis AC <strong>#${invoiceNumber}</strong> sebesar <strong>Rp ${total.toLocaleString("id-ID")}</strong> telah diterbitkan.</p>
+            <p><a href="https://crm-ac.tech1solusi.workers.dev${pdfUrl}">Buka Lembar Faktur #${invoiceNumber}</a></p>
             <p>Jatuh tempo pembayaran: ${dueDate.toLocaleDateString("id-ID")}</p>
           `,
         }),
@@ -105,6 +137,8 @@ invoicesRouter.post("/invoices/generate", async (c) => {
     id: invoiceId,
     invoiceNumber,
     pdfUrl,
+    subtotal,
+    taxAmount: tax,
     totalAmount: total,
     emailDispatched,
     status: "SENT",

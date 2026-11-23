@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Building2, MapPin, Layers, Cpu, Plus, CheckCircle2, ChevronRight, Hash, Eye, QrCode } from "lucide-react";
 
 interface Customer {
@@ -27,7 +27,52 @@ interface ACUnit {
 }
 
 export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: string) => void }) {
-  const [customers] = useState<Customer[]>([
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
+  const [units, setUnits] = useState<ACUnit[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddUnitModal, setShowAddUnitModal] = useState(false);
+
+  const [newTag, setNewTag] = useState("");
+  const [newBrand, setNewBrand] = useState("Daikin Inverter");
+  const [newPk, setNewPk] = useState("1.5");
+  const [newInterval, setNewInterval] = useState("3");
+
+  // Fetch real live customers and units from Cloudflare D1
+  useEffect(() => {
+    async function loadData() {
+      try {
+        const custRes = await fetch("/api/customers");
+        if (custRes.ok) {
+          const custList = await custRes.json();
+          if (Array.isArray(custList) && custList.length > 0) {
+            setCustomers(custList);
+            setSelectedCustomerId(custList[0].id);
+          }
+        }
+
+        const unitsRes = await fetch("/api/ac-units");
+        if (unitsRes.ok) {
+          const unitsList = await unitsRes.json();
+          if (Array.isArray(unitsList) && unitsList.length > 0) {
+            setUnits(unitsList.map((u: any) => ({
+              ...u,
+              lastHealthScore: 95,
+              lastServiceDate: "23 Okt 2026",
+            })));
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load D1 customers, falling back to local cache", e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadData();
+  }, []);
+
+  // Fallback defaults if D1 is empty
+  const activeCustomers = customers.length > 0 ? customers : [
     {
       id: "cust_1",
       name: "PT. Mega Solusi Finansial",
@@ -44,20 +89,12 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
       picEmail: "ga@digitalniaga.id",
       defaultServiceIntervalMonths: 3,
     },
-    {
-      id: "cust_3",
-      name: "PT. Surya Teknologi Global",
-      picName: "Bpk. Hendra Gunawan",
-      picPhone: "081912345678",
-      picEmail: "finance@suryatekno.com",
-      defaultServiceIntervalMonths: 2,
-    },
-  ]);
+  ];
 
-  const [selectedCustomerId, setSelectedCustomerId] = useState<string>("cust_1");
-  const [showAddUnitModal, setShowAddUnitModal] = useState(false);
+  const activeCustomerId = selectedCustomerId || (activeCustomers[0] ? activeCustomers[0].id : "cust_1");
+  const selectedCustomer = activeCustomers.find((c) => c.id === activeCustomerId);
 
-  const [units, setUnits] = useState<ACUnit[]>([
+  const activeUnits = units.length > 0 ? units : [
     {
       id: "ac_1",
       customerId: "cust_1",
@@ -68,7 +105,7 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
       modelNumber: "FTKC25TV",
       capacityPk: 2.0,
       refrigerantType: "R32",
-      serviceIntervalMonths: 1, // Server room needs monthly maintenance
+      serviceIntervalMonths: 1,
       status: "active",
       lastHealthScore: 96,
       lastServiceDate: "23 Okt 2026",
@@ -103,23 +140,16 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
       lastHealthScore: 94,
       lastServiceDate: "15 Agu 2026",
     },
-  ]);
+  ];
 
-  const [newTag, setNewTag] = useState("");
-  const [newBrand, setNewBrand] = useState("Daikin Inverter");
-  const [newPk, setNewPk] = useState("1.5");
-  const [newInterval, setNewInterval] = useState("3");
+  const filteredUnits = activeUnits.filter((u) => u.customerId === activeCustomerId);
 
-  const selectedCustomer = customers.find((c) => c.id === selectedCustomerId);
-  const filteredUnits = units.filter((u) => u.customerId === selectedCustomerId);
-
-  const handleAddUnit = (e: React.FormEvent) => {
+  const handleAddUnit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newTag.trim()) return;
 
-    const newUnit: ACUnit = {
-      id: `ac_${Date.now()}`,
-      customerId: selectedCustomerId,
+    const payload = {
+      customerId: activeCustomerId,
       locationId: "loc_1",
       zoneId: "zone_1",
       assetTag: newTag.toUpperCase(),
@@ -129,11 +159,26 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
       refrigerantType: "R32",
       serviceIntervalMonths: parseInt(newInterval),
       status: "active",
+    };
+
+    try {
+      await fetch("/api/ac-units", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+    } catch (err) {
+      console.error(err);
+    }
+
+    const newUnit: ACUnit = {
+      id: `ac_${Date.now()}`,
+      ...payload,
       lastHealthScore: 100,
       lastServiceDate: "Baru Diinstal",
     };
 
-    setUnits([newUnit, ...units]);
+    setUnits([newUnit, ...activeUnits]);
     setNewTag("");
     setShowAddUnitModal(false);
   };
@@ -145,10 +190,10 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
         <div>
           <h2 className="text-xl md:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
             <Building2 className="w-6 h-6 text-teal-400" />
-            Manajemen Klien & Aset AC B2B
+            Manajemen Customer & Aset AC B2B
           </h2>
           <p className="text-xs md:text-sm text-slate-400">
-            Identitas Barcode AC menyimpan klien, lokasi gedung, spesifikasi teknis, kondisi terkini, dan riwayat servis.
+            Identitas Barcode AC terhubung langsung dengan Customer, lokasi gedung, spesifikasi teknis, kondisi terkini, dan riwayat servis.
           </p>
         </div>
         <button
@@ -166,18 +211,18 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4">
           <div className="flex items-center justify-between">
             <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-              Daftar Klien Korporat
+              Daftar Customer Korporat
             </h3>
-            <span className="text-[11px] text-teal-400">{customers.length} Kontrak Aktif</span>
+            <span className="text-[11px] text-teal-400">{activeCustomers.length} Kontrak Aktif</span>
           </div>
 
           <div className="space-y-2">
-            {customers.map((c) => (
+            {activeCustomers.map((c) => (
               <div
                 key={c.id}
                 onClick={() => setSelectedCustomerId(c.id)}
                 className={`p-4 rounded-xl border cursor-pointer transition-all ${
-                  selectedCustomerId === c.id
+                  activeCustomerId === c.id
                     ? "bg-teal-500/10 border-teal-500/40 shadow-sm"
                     : "bg-slate-950/60 border-slate-800/80 hover:border-slate-700"
                 }`}
@@ -186,7 +231,7 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
                   <p className="text-sm font-semibold text-white">{c.name}</p>
                   <ChevronRight
                     className={`w-4 h-4 mt-0.5 transition-transform ${
-                      selectedCustomerId === c.id ? "text-teal-400 rotate-90" : "text-slate-600"
+                      activeCustomerId === c.id ? "text-teal-400 rotate-90" : "text-slate-600"
                     }`}
                   />
                 </div>
@@ -270,7 +315,7 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
           <div className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-2xl">
             <h3 className="text-base font-bold text-white mb-1">Registrasi Unit AC Baru</h3>
             <p className="text-xs text-slate-400 mb-4">
-              Klien: <span className="text-teal-400 font-medium">{selectedCustomer?.name}</span>
+              Customer: <span className="text-teal-400 font-medium">{selectedCustomer?.name}</span>
             </p>
 
             <form onSubmit={handleAddUnit} className="space-y-3">
