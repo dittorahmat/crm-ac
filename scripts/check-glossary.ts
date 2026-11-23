@@ -2,11 +2,11 @@ import fs from "fs";
 import path from "path";
 
 // Banned words as documented in GLOSSARY.md
-// Targets domain terminology violations, not software runtime technical imports (react-dom/client, etc.)
+// Targets domain terminology violations across both code identifiers and UI prose (English & Indonesian)
 const BANNED_TERMS = [
-  { banned: /\bclient(Name|Pic|Email|Address|Id|Type|Data)?\b/i, canonical: "Customer", avoid: "client" },
-  { banned: /\bbuyer\b/i, canonical: "Customer", avoid: "buyer" },
-  { banned: /\bfacility\b/i, canonical: "Location", avoid: "facility" },
+  { banned: /\b(client|klien)(Name|Pic|Email|Address|Id|Type|Data)?\b/i, canonical: "Customer / Pelanggan", avoid: "client / klien" },
+  { banned: /\bbuyer\b/i, canonical: "Customer / Pelanggan", avoid: "buyer" },
+  { banned: /\bfacility\b/i, canonical: "Location / Lokasi", avoid: "facility" },
 ];
 
 function checkDirectory(dir: string, violations: string[]) {
@@ -52,5 +52,5 @@ if (violations.length > 0) {
   console.error("\nPlease replace banned terms with their canonical domain vocabulary.");
   process.exit(1);
 } else {
-  console.log("✅ GLOSSARY domain vocabulary verified clean.");
+  console.log("✅ GLOSSARY domain vocabulary verified clean (including Indonesian terms).");
 }

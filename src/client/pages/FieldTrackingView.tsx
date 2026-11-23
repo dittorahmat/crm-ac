@@ -177,7 +177,7 @@ export function FieldTrackingView() {
               Input Parameter Teknis & Hasil Diagnosa
             </h3>
             <p className="text-xs text-slate-400 mt-1">
-              Catatan komparasi sebelum vs sesudah servis untuk dicetak di lembar laporan klien.
+              Catatan komparasi sebelum vs sesudah servis untuk dicetak di lembar laporan pelanggan.
             </p>
           </div>
 
