@@ -47,28 +47,37 @@ export function App() {
   if (!user) {
     return (
       <LoginPage
-        onLoginSuccess={(userData) =>
-          setUser(
-            userData || {
-              name: "Admin Operasional",
-              email: "admin@koolsync.com",
-              role: "admin",
-            }
-          )
-        }
+        onLoginSuccess={(userData) => {
+          const u = userData || {
+            name: "Admin Operasional",
+            email: "admin@koolsync.com",
+            role: "admin",
+          };
+          setUser(u);
+          // Auto-direct technicians to field operational workflow
+          if (u.role === "technician") {
+            setActiveTab("service_flow");
+          } else {
+            setActiveTab("dashboard");
+          }
+        }}
       />
     );
   }
 
-  const navItems = [
-    { id: "dashboard", label: "Dashboard Metrik", icon: BarChart3 },
-    { id: "customers", label: "Aset & Customer B2B", icon: Building2 },
-    { id: "tags", label: "Cetak Label Tom & Jerry", icon: QrCode },
-    { id: "schedules", label: "Penjadwalan Teknisi", icon: CalendarClock },
-    { id: "service_flow", label: "Tracking Lapangan (Real-time)", icon: ClipboardCheck },
-    { id: "invoices", label: "Faktur & Tagihan PDF", icon: FileText },
-    { id: "reminders", label: "Otomasi WhatsApp (3-6 Bulan)", icon: Bell },
+  // Define full navigation items with RBAC roles
+  const allNavItems = [
+    { id: "dashboard", label: "Dashboard Metrik", icon: BarChart3, roles: ["admin"] },
+    { id: "customers", label: "Aset & Customer B2B", icon: Building2, roles: ["admin"] },
+    { id: "tags", label: "Cetak Label Tom & Jerry", icon: QrCode, roles: ["admin"] },
+    { id: "schedules", label: "Penjadwalan Teknisi", icon: CalendarClock, roles: ["admin", "technician"] },
+    { id: "service_flow", label: "Tracking Lapangan (Real-time)", icon: ClipboardCheck, roles: ["admin", "technician"] },
+    { id: "invoices", label: "Faktur & Tagihan PDF", icon: FileText, roles: ["admin"] },
+    { id: "reminders", label: "Otomasi WhatsApp (3-6 Bulan)", icon: Bell, roles: ["admin"] },
   ] as const;
+
+  const currentRole = user.role === "technician" ? "technician" : "admin";
+  const navItems = allNavItems.filter((item) => (item.roles as readonly string[]).includes(currentRole));
 
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50 text-slate-900">

@@ -372,7 +372,7 @@ export function FieldTrackingView() {
           <div className="pt-4 flex items-center justify-center gap-3">
             <button
               onClick={() => setStep("inspect")}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-900"
+              className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-xs font-semibold text-white shadow-sm"
             >
               Lihat Detail Rekap
             </button>

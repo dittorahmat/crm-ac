@@ -142,7 +142,7 @@ export function WhatsAppReminderView() {
               <div className="space-y-1.5">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-bold text-slate-900">{r.customerName}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-slate-800 text-blue-700 border border-slate-300">
+                  <span className="text-xs px-2 py-0.5 rounded-full font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                     {r.unitCount} Unit AC
                   </span>
                   <span className="text-[11px] text-slate-500">Siklus: Tiap {r.intervalMonths} Bulan</span>

@@ -40,8 +40,14 @@ _Avoid_: Task item, subtask
 Structured proof captured during service: before/after photos, diagnostic parameters (pressure/temperature), and PIC digital signature.
 _Avoid_: Proof of work, attachment
 
+### User Roles & Access Control
+
+**Admin**:
+An operational coordinator or finance officer managing Customer contracts, billing invoices, technician dispatches, and WhatsApp reminders with full system access.
+_Avoid_: Superuser, manager, boss
+
 **Technician**:
-A field service engineer assigned to execute ServiceOrders on-site.
+A field service engineer assigned to execute ServiceOrders on-site, upload ServiceEvidence, and record telemetry. Restricted from financial invoices and customer master data.
 _Avoid_: Worker, mechanic, field staff
 
 ### Scheduling & Billing

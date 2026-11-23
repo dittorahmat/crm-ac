@@ -2,11 +2,41 @@ import { Hono } from "hono";
 import { eq } from "drizzle-orm";
 import * as schema from "../db/schema";
 import { z } from "zod";
+import { requireRole } from "../middleware/auth";
 
 export const assetsRouter = new Hono<{
   Bindings: { DB: D1Database };
   Variables: { db: any; user: any };
 }>();
+
+// Protect master data mutations with admin role
+assetsRouter.use("/customers", async (c, next) => {
+  if (c.req.method === "POST" || c.req.method === "PUT" || c.req.method === "DELETE") {
+    return requireRole(["admin"])(c, next);
+  }
+  await next();
+});
+
+assetsRouter.use("/locations", async (c, next) => {
+  if (c.req.method === "POST" || c.req.method === "PUT" || c.req.method === "DELETE") {
+    return requireRole(["admin"])(c, next);
+  }
+  await next();
+});
+
+assetsRouter.use("/zones", async (c, next) => {
+  if (c.req.method === "POST" || c.req.method === "PUT" || c.req.method === "DELETE") {
+    return requireRole(["admin"])(c, next);
+  }
+  await next();
+});
+
+assetsRouter.use("/ac-units", async (c, next) => {
+  if (c.req.method === "POST" || c.req.method === "PUT" || c.req.method === "DELETE") {
+    return requireRole(["admin"])(c, next);
+  }
+  await next();
+});
 
 // Schemas
 const customerSchema = z.object({

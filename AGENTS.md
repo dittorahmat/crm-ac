@@ -7,7 +7,7 @@ Instructions and configuration for AI agents working in this repository.
 - **Fullstack Stack**: Cloudflare Workers + Hono REST API + React Vite + Drizzle ORM (D1) + R2. See `docs/adr/0001-monolithic-cloudflare-stack.md`.
 - **R2 Storage Patterns**: `evidence/{serviceOrderId}/{acUnitId}/{evidenceType}_{timestamp}.webp` and `invoices/{invoiceNumber}.html`. See `docs/adr/0003-service-evidence-and-asset-tag-printing.md`.
 - **WhatsApp Gateway**: Official Meta Cloud API with Fonnte/Waha resilient fallback. See `docs/adr/0002-whatsapp-adapter-and-fallback.md`.
-- **Auth**: Better-Auth with D1 adapter. See `docs/adr/0004-better-auth-on-cloudflare-d1.md`.
+- **Auth & RBAC**: Better-Auth with D1 adapter, enforcing `admin` and `technician` roles. See `docs/adr/0004-better-auth-on-cloudflare-d1.md` and `docs/adr/0005-role-based-access-control.md`.
 
 ## Frontend & Design Quality Rules (Clean B2B Standard)
 

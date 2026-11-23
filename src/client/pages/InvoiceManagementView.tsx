@@ -100,7 +100,7 @@ export function InvoiceManagementView() {
             >
               <div className="space-y-1.5">
                 <div className="flex items-center gap-3">
-                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-800 text-blue-700 border border-slate-300">
+                  <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-blue-50 text-blue-700 border border-blue-200">
                     {inv.invoiceNumber}
                   </span>
                   {inv.status === "PAID" && (
@@ -109,12 +109,12 @@ export function InvoiceManagementView() {
                     </span>
                   )}
                   {inv.status === "SENT" && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200">
                       Terkirim ke Email
                     </span>
                   )}
                   {inv.status === "DRAFT" && (
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                       Draf
                     </span>
                   )}
@@ -154,7 +154,7 @@ export function InvoiceManagementView() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => alert(`Mengunduh PDF Faktur: ${inv.invoiceNumber}`)}
-                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-700 hover:text-slate-900 transition-colors"
+                    className="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm transition-colors"
                     title="Unduh PDF"
                   >
                     <Download className="w-4 h-4" />
@@ -164,7 +164,7 @@ export function InvoiceManagementView() {
                     <button
                       onClick={() => handleSendEmail(inv.id)}
                       disabled={emailSending === inv.id}
-                      className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-bold text-xs flex items-center gap-1.5 transition-all shadow-md shadow-teal-500/10"
+                      className="px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-bold text-xs flex items-center gap-1.5 transition-all "
                     >
                       <Send className="w-3.5 h-3.5" />
                       {emailSending === inv.id ? "Mengirim..." : "Kirim Email"}
