@@ -35,8 +35,11 @@ All transactional emails must be dispatched via `sendTransactionalEmail(params)`
 ### 4. Semantic UI Views
 All major full-page views (`*View.tsx`) must structure content using top-level `<main className="... wrap">` and semantic `<section>` blocks, completely replacing unsemantic top-level `<div>` wrappers.
 
+### 5. Real Operational Metrics (No Synthetic/Index Math)
+Operational dashboard and technician leaderboard metrics must be computed from real D1 database aggregations (`service_orders` and `service_items`) rather than synthesized using hardcoded math or array index formulas (`idx * ...`).
+
 ## Consequences
 
 - Gateway credentials can be dynamically updated or cleared by admins at runtime.
 - Background cron routines and manual triggers use the exact same configuration logic.
-- Automated guardrails prevent raw HTTP calls and unsemantic views from being merged.
+- Automated guardrails prevent raw HTTP calls, unguarded admin subpaths, and false-positive delivery status checks from being merged.

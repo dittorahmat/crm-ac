@@ -29,6 +29,15 @@ function checkServerSecurity(dir: string, violations: string[]) {
       const content = fs.readFileSync(fullPath, "utf-8");
       const lines = content.split("\n");
 
+      // Verify that all sensitive routes enforce wildcards or requireRole
+      if (fullPath.includes(path.join("routes")) && (entry.name === "invoices.ts" || entry.name === "settings.ts")) {
+        if (!content.includes('use("*", requireRole(["admin"]))')) {
+          violations.push(
+            `${fullPath} - Sensitive admin router must protect all subpaths using: router.use("*", requireRole(["admin"]))`
+          );
+        }
+      }
+
       lines.forEach((line, lineNum) => {
         if (line.trim().startsWith("//") || line.trim().startsWith("/*")) return;
 
@@ -80,6 +89,18 @@ function checkFrontendIntegrity(dir: string, violations: string[]) {
           violations.push(
             `${fullPath}:${lineNum + 1} - Found pseudo 1x1 dummy base64 signature/photo. Must use real HTML5 canvas or actual file uploads.`
           );
+        }
+
+        // Prevent false-positive notification delivery status: marking SENT without verifying data.success
+        if (line.includes('status: "SENT"') || line.includes("status: 'SENT'")) {
+          // Check previous 10 lines for res.ok check without data.success
+          const start = Math.max(0, lineNum - 12);
+          const block = lines.slice(start, lineNum).join("\n");
+          if (block.includes("if (res.ok)") && !block.includes("data.success")) {
+            violations.push(
+              `${fullPath}:${lineNum + 1} - Found false-positive delivery check: must verify 'res.ok && data.success === true' before marking SENT.`
+            );
+          }
         }
       });
 
