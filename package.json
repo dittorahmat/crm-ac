@@ -23,6 +23,7 @@
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.39.3",
     "hono": "^4.7.2",
+    "html5-qrcode": "^2.3.8",
     "lucide-react": "^0.475.0",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",
