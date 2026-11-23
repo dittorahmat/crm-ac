@@ -10,6 +10,7 @@ import { AnalyticsDashboardView } from "./pages/AnalyticsDashboardView";
 import { ACUnitDetailView } from "./pages/ACUnitDetailView";
 import { SystemSettingsView } from "./pages/SystemSettingsView";
 import { BarcodeScanModal } from "./components/BarcodeScanModal";
+import { parseAssetTagFromUrl } from "./lib/scanner";
 import { 
   Building2, 
   QrCode, 
@@ -37,22 +38,28 @@ export function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showScanModal, setShowScanModal] = useState(false);
 
+  // Check initial deep-linked /ac/:assetTag URL
   useEffect(() => {
     const path = window.location.pathname;
-    if (path.startsWith("/ac/")) {
-      const tag = decodeURIComponent(path.replace("/ac/", ""));
+    if (path.includes("/ac/")) {
+      const tag = parseAssetTagFromUrl(path);
       if (tag) {
         setInspectingTag(tag);
-        setActiveTab("unit_detail");
+        if (user?.role === "technician") {
+          setActiveTab("service_flow");
+        } else {
+          setActiveTab("unit_detail");
+        }
       }
     }
-  }, []);
+  }, [user]);
 
-  const handleScannedTag = (tag: string) => {
+  const handleScannedTag = (rawText: string) => {
+    const tag = parseAssetTagFromUrl(rawText);
     setInspectingTag(tag);
     window.history.pushState({}, "", `/ac/${encodeURIComponent(tag)}`);
 
-    // Role-based routing: Technician directed to service flow, Admin to asset passport
+    // Role-based routing: Technician directed to service flow with active unit, Admin to asset passport
     if (user?.role === "technician") {
       setActiveTab("service_flow");
     } else {
@@ -213,7 +220,7 @@ export function App() {
       {/* Semantic Main Content Area */}
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10 bg-slate-50 min-h-screen">
         <div className="max-w-7xl mx-auto wrap">
-          {activeTab === "dashboard" && (currentRole === "admin" ? <AnalyticsDashboardView /> : <FieldTrackingView />)}
+          {activeTab === "dashboard" && (currentRole === "admin" ? <AnalyticsDashboardView /> : <FieldTrackingView initialUnitTag={inspectingTag} />)}
           {activeTab === "customers" && (currentRole === "admin" ? (
             <CustomerAssetsView
               onInspectUnit={(tag) => {
@@ -221,13 +228,13 @@ export function App() {
                 setActiveTab("unit_detail");
               }}
             />
-          ) : <FieldTrackingView />)}
-          {activeTab === "tags" && (currentRole === "admin" ? <BarcodePrintView /> : <FieldTrackingView />)}
+          ) : <FieldTrackingView initialUnitTag={inspectingTag} />)}
+          {activeTab === "tags" && (currentRole === "admin" ? <BarcodePrintView /> : <FieldTrackingView initialUnitTag={inspectingTag} />)}
           {activeTab === "schedules" && <ServiceScheduleView />}
-          {activeTab === "service_flow" && <FieldTrackingView />}
-          {activeTab === "invoices" && (currentRole === "admin" ? <InvoiceManagementView /> : <FieldTrackingView />)}
-          {activeTab === "reminders" && (currentRole === "admin" ? <WhatsAppReminderView /> : <FieldTrackingView />)}
-          {activeTab === "settings" && (currentRole === "admin" ? <SystemSettingsView /> : <FieldTrackingView />)}
+          {activeTab === "service_flow" && <FieldTrackingView initialUnitTag={inspectingTag} />}
+          {activeTab === "invoices" && (currentRole === "admin" ? <InvoiceManagementView /> : <FieldTrackingView initialUnitTag={inspectingTag} />)}
+          {activeTab === "reminders" && (currentRole === "admin" ? <WhatsAppReminderView /> : <FieldTrackingView initialUnitTag={inspectingTag} />)}
+          {activeTab === "settings" && (currentRole === "admin" ? <SystemSettingsView /> : <FieldTrackingView initialUnitTag={inspectingTag} />)}
           {activeTab === "unit_detail" && (
             <ACUnitDetailView
               assetTag={inspectingTag}

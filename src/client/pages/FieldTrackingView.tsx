@@ -14,11 +14,22 @@ import {
   Loader2
 } from "lucide-react";
 
-export function FieldTrackingView() {
+interface FieldTrackingViewProps {
+  initialUnitTag?: string;
+}
+
+export function FieldTrackingView({ initialUnitTag }: FieldTrackingViewProps = {}) {
   const [step, setStep] = useState<"inspect" | "measure" | "signature" | "done">("inspect");
-  const [activeUnitTag, setActiveUnitTag] = useState("AC-MSF-SRV-01");
+  const [activeUnitTag, setActiveUnitTag] = useState(initialUnitTag || "AC-MSF-SRV-01");
   const [serviceItemId, setServiceItemId] = useState<string>("item_demo_1");
   const [serviceOrderId, setServiceOrderId] = useState<string>("so_1");
+
+  // Keep activeUnitTag in sync if prop changes
+  useEffect(() => {
+    if (initialUnitTag) {
+      setActiveUnitTag(initialUnitTag);
+    }
+  }, [initialUnitTag]);
 
   // Measurements
   const [beforePsi, setBeforePsi] = useState("65");

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from "html5-qrcode";
+import { parseAssetTagFromUrl, triggerScanSuccessFeedback } from "../lib/scanner";
 import { 
   Camera, 
   X, 
@@ -54,14 +55,14 @@ export function BarcodeScanModal({ isOpen, onClose, onSelectTag, userRole = "adm
       try {
         const res = await fetch("/api/ac-units");
         if (res.ok) {
-          const data = (await res.json()) as any[];
+          const data = (await res.json()) as ACUnitSummary[];
           if (Array.isArray(data)) {
             setUnits(data.map((u) => ({
               id: u.id,
               assetTag: u.assetTag,
               brand: u.brand,
               capacityPk: u.capacityPk || 1.0,
-              customerName: u.customerName || "Customer",
+              customerName: u.customerName || "Pelanggan",
               zoneName: u.zoneName || "Ruang Operasional",
               locationName: u.locationName || "Gedung",
             })));
@@ -114,11 +115,9 @@ export function BarcodeScanModal({ isOpen, onClose, onSelectTag, userRole = "adm
           aspectRatio: 1.0,
         },
         (decodedText) => {
-          // Check if decoded text is a full URL or direct tag
-          let tag = decodedText.trim();
-          if (tag.includes("/ac/")) {
-            tag = decodeURIComponent(tag.split("/ac/")[1]);
-          }
+          // Robust tag extraction and sensory feedback
+          const tag = parseAssetTagFromUrl(decodedText);
+          triggerScanSuccessFeedback();
 
           // Stop scanner and trigger selection
           scanner.stop().then(() => {
@@ -178,7 +177,12 @@ export function BarcodeScanModal({ isOpen, onClose, onSelectTag, userRole = "adm
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div 
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="barcode-scanner-title"
+    >
       <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         {/* Modal Header */}
         <div className="p-5 border-b border-slate-100 flex items-center justify-between">
@@ -187,7 +191,7 @@ export function BarcodeScanModal({ isOpen, onClose, onSelectTag, userRole = "adm
               <Camera className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900 tracking-tight">
+              <h3 id="barcode-scanner-title" className="text-base font-bold text-slate-900 tracking-tight">
                 Scan Barcode & QR Code Unit AC
               </h3>
               <p className="text-xs text-slate-500">
