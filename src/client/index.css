@@ -4,8 +4,36 @@
 
 @layer base {
   body {
-    @apply bg-slate-50 text-slate-900 antialiased font-sans selection:bg-teal-500 selection:text-white;
+    @apply bg-[#06090e] text-slate-100 antialiased font-sans min-h-screen;
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(6, 182, 212, 0.04) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(14, 116, 144, 0.03) 0px, transparent 50%);
   }
+}
+
+.wrap {
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Hover Micro-interactions (House Rule #5) */
+.interactive-card {
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.interactive-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 15px -3px rgba(6, 182, 212, 0.15);
+}
+
+.interactive-button {
+  transition: transform 0.1s ease, background-color 0.15s ease, filter 0.15s ease;
+}
+.interactive-button:hover {
+  filter: brightness(1.05);
+}
+.interactive-button:active {
+  transform: scale(0.98);
 }
 
 /* Print CSS setup for Tom & Jerry precise die-cut label sheets */
@@ -17,6 +45,7 @@
   body {
     background: white !important;
     color: black !important;
+    background-image: none !important;
   }
   .no-print {
     display: none !important;

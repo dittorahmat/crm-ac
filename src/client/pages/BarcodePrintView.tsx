@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import QRCode from "qrcode";
-import { QrCode, Printer, Sliders, CheckSquare, Square, Info } from "lucide-react";
+import { QrCode, Printer, CheckSquare, Square, Info, Layers, Sparkles } from "lucide-react";
 
 interface PrintableUnit {
   id: string;
@@ -13,10 +13,9 @@ interface PrintableUnit {
 
 export function BarcodePrintView() {
   const [template, setTemplate] = useState<"TJ108" | "TJ103">("TJ108");
-  const [startOffset, setStartOffset] = useState<number>(0); // 0-indexed cell offset
+  const [startOffset, setStartOffset] = useState<number>(0);
   const [qrCodeDataUrls, setQrCodeDataUrls] = useState<Record<string, string>>({});
 
-  // Preset units to print
   const [units] = useState<PrintableUnit[]>([
     {
       id: "ac_1",
@@ -28,35 +27,35 @@ export function BarcodePrintView() {
     },
     {
       id: "ac_2",
-      assetTag: "AC-MSF-LOB-02",
+      assetTag: "AC-MSF-WRK-02",
+      brand: "Panasonic Inverter",
+      capacityPk: 2.0,
+      customerName: "PT. Mega Solusi",
+      zoneName: "Lt. 8 Workstation",
+    },
+    {
+      id: "ac_3",
+      assetTag: "AC-MSF-LOB-03",
       brand: "Panasonic Cassette",
       capacityPk: 3.0,
       customerName: "PT. Mega Solusi",
       zoneName: "Lobby Utama Lt. 1",
     },
     {
-      id: "ac_3",
-      assetTag: "AC-MSF-DIR-03",
+      id: "ac_4",
+      assetTag: "AC-DNN-OPS-01",
       brand: "Sharp Plasmacluster",
       capacityPk: 1.5,
-      customerName: "PT. Mega Solusi",
-      zoneName: "Ruang Direktur",
-    },
-    {
-      id: "ac_4",
-      assetTag: "AC-MSF-MTG-04",
-      brand: "Daikin Multi-S",
-      capacityPk: 2.5,
-      customerName: "PT. Mega Solusi",
-      zoneName: "Ruang Meeting A",
+      customerName: "CV. Digital Niaga",
+      zoneName: "Head Office Tebet",
     },
     {
       id: "ac_5",
-      assetTag: "AC-MSF-OPS-05",
-      brand: "Gree Inverter",
-      capacityPk: 1.0,
-      customerName: "PT. Mega Solusi",
-      zoneName: "Area Operasional",
+      assetTag: "AC-STG-BDR-01",
+      brand: "Daikin Multi-S",
+      capacityPk: 3.0,
+      customerName: "PT. Surya Teknologi",
+      zoneName: "Graha Mandiri Lt. 12",
     },
   ]);
 
@@ -68,7 +67,6 @@ export function BarcodePrintView() {
     "ac_5",
   ]);
 
-  // Generate QR Code images
   useEffect(() => {
     async function generateQrs() {
       const urls: Record<string, string> = {};
@@ -100,18 +98,13 @@ export function BarcodePrintView() {
     window.print();
   };
 
-  // Tom & Jerry specs
-  // TJ108: 5 columns x 8 rows = 40 labels per sheet (approx 38mm x 18mm)
-  // TJ103: 3 columns x 4 rows = 12 labels per sheet (approx 64mm x 32mm)
   const totalSlots = template === "TJ108" ? 40 : 12;
   const gridColsClass = template === "TJ108" ? "grid-cols-5" : "grid-cols-3";
-
   const selectedUnits = units.filter((u) => selectedUnitIds.includes(u.id));
 
-  // Build grid items considering start offset
   const gridItems: (PrintableUnit | null)[] = [];
   for (let i = 0; i < startOffset; i++) {
-    gridItems.push(null); // empty cells to skip used stickers
+    gridItems.push(null);
   }
   selectedUnits.forEach((u) => gridItems.push(u));
   while (gridItems.length < totalSlots) {
@@ -119,69 +112,73 @@ export function BarcodePrintView() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Control Panel (Hidden when printing) */}
-      <div className="no-print bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-6">
+      <section className="no-print bg-[#0b111c] border border-slate-800 rounded-3xl p-6 sm:p-8 space-y-6 shadow-2xl">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-800">
           <div>
-            <h2 className="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-              <QrCode className="w-5 h-5 text-teal-400" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 mb-2">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Die-Cut Label Calibration Engine</span>
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
+              <QrCode className="w-6 h-6 text-cyan-400" />
               Generator & Cetak Stiker Tom & Jerry
-            </h2>
-            <p className="text-xs text-slate-400 mt-1">
-              Cetak label barcode unik unit AC ke kertas stiker Tom & Jerry standar dengan offset agar stiker sisa tidak terbuang.
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              Konfigurasi layout lembar stiker Tom & Jerry standar dengan offset baris/kolom agar stiker sisa tidak terbuang.
             </p>
           </div>
           <button
             onClick={handlePrint}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-500 hover:bg-teal-400 text-slate-950 font-bold text-xs transition-all shadow-lg shadow-teal-500/20"
+            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-extrabold text-xs transition-all shadow-glow-cold interactive-button shrink-0"
           >
             <Printer className="w-4 h-4" />
-            Cetak Label (Ctrl + P)
+            Cetak Label Fisik (Ctrl + P)
           </button>
         </div>
 
         {/* Configuration Row */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Template Selection */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">
-              Ukuran Stiker Tom & Jerry
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-300">
+              Format Kertas Stiker Tom & Jerry
             </label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setTemplate("TJ108")}
-                className={`p-3 rounded-xl border text-left transition-all ${
+                className={`p-3.5 rounded-2xl border text-left transition-all interactive-card ${
                   template === "TJ108"
-                    ? "bg-teal-500/10 border-teal-500/50 text-white"
-                    : "bg-slate-950 border-slate-800 text-slate-400"
+                    ? "bg-cyan-500/10 border-cyan-500/60 text-white shadow-glow-cold"
+                    : "bg-[#06090e] border-slate-800 text-slate-400"
                 }`}
               >
-                <div className="text-xs font-bold">No. 108</div>
-                <div className="text-[10px] text-slate-400">38 x 18 mm (40 Stiker/Lembar)</div>
+                <div className="text-sm font-extrabold">No. 108</div>
+                <div className="text-[10px] text-slate-400 mt-1 font-mono">38 x 18 mm (40 Stiker)</div>
               </button>
 
               <button
                 type="button"
                 onClick={() => setTemplate("TJ103")}
-                className={`p-3 rounded-xl border text-left transition-all ${
+                className={`p-3.5 rounded-2xl border text-left transition-all interactive-card ${
                   template === "TJ103"
-                    ? "bg-teal-500/10 border-teal-500/50 text-white"
-                    : "bg-slate-950 border-slate-800 text-slate-400"
+                    ? "bg-cyan-500/10 border-cyan-500/60 text-white shadow-glow-cold"
+                    : "bg-[#06090e] border-slate-800 text-slate-400"
                 }`}
               >
-                <div className="text-xs font-bold">No. 103</div>
-                <div className="text-[10px] text-slate-400">64 x 32 mm (12 Stiker/Lembar)</div>
+                <div className="text-sm font-extrabold">No. 103</div>
+                <div className="text-[10px] text-slate-400 mt-1 font-mono">64 x 32 mm (12 Stiker)</div>
               </button>
             </div>
           </div>
 
           {/* Start Grid Offset */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2 flex items-center justify-between">
-              <span>Mulai dari Kotak Stiker Ke-</span>
-              <span className="text-teal-400 font-mono text-xs font-bold">{startOffset + 1}</span>
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-300 flex items-center justify-between">
+              <span>Mulai Cetak dari Stiker Ke-</span>
+              <span className="text-cyan-400 font-mono text-sm font-extrabold">#{startOffset + 1}</span>
             </label>
             <input
               type="range"
@@ -189,17 +186,17 @@ export function BarcodePrintView() {
               max={totalSlots - 1}
               value={startOffset}
               onChange={(e) => setStartOffset(parseInt(e.target.value))}
-              className="w-full accent-teal-500 cursor-pointer"
+              className="w-full accent-cyan-400 cursor-pointer h-2 bg-slate-900 rounded-lg"
             />
-            <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1">
-              <Info className="w-3.5 h-3.5 shrink-0" />
-              Lewati stiker yang sudah terpakai di lembaran Anda.
+            <p className="text-[11px] text-slate-400 flex items-center gap-1.5 pt-1">
+              <Info className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              Menghemat kertas dengan melewati kotak stiker yang sudah terpakai sebelumnya.
             </p>
           </div>
 
           {/* Select Units */}
-          <div>
-            <label className="block text-xs font-semibold text-slate-300 mb-2">
+          <div className="space-y-2">
+            <label className="block text-xs font-bold text-slate-300">
               Pilih Unit AC ({selectedUnits.length}/{units.length})
             </label>
             <div className="max-h-28 overflow-y-auto space-y-1.5 pr-2">
@@ -209,77 +206,91 @@ export function BarcodePrintView() {
                   <div
                     key={u.id}
                     onClick={() => toggleSelect(u.id)}
-                    className="flex items-center gap-2 p-1.5 rounded-lg bg-slate-950 border border-slate-800/80 cursor-pointer text-xs"
+                    className="flex items-center gap-2.5 p-2 rounded-xl bg-[#06090e] border border-slate-800/80 cursor-pointer text-xs hover:border-slate-700 transition-all"
                   >
                     {checked ? (
-                      <CheckSquare className="w-3.5 h-3.5 text-teal-400" />
+                      <CheckSquare className="w-4 h-4 text-cyan-400" />
                     ) : (
-                      <Square className="w-3.5 h-3.5 text-slate-600" />
+                      <Square className="w-4 h-4 text-slate-600" />
                     )}
-                    <span className="font-mono text-slate-300">{u.assetTag}</span>
-                    <span className="text-[11px] text-slate-500 truncate">- {u.zoneName}</span>
+                    <span className="font-mono font-bold text-slate-200">{u.assetTag}</span>
+                    <span className="text-[11px] text-slate-400 truncate">- {u.zoneName}</span>
                   </div>
                 );
               })}
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      {/* Sheet Preview & Printable Area */}
-      <div className="bg-slate-900/40 border border-slate-800 rounded-2xl p-6 overflow-x-auto">
-        <h3 className="no-print text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">
-          Lembar Pratinjau Cetak (Ukuran A4 Standar)
-        </h3>
+      {/* Realistic Physical Sheet Preview (Paper Tabletop Simulation) */}
+      <section className="bg-[#0b111c] border border-slate-800 rounded-3xl p-6 sm:p-10 overflow-x-auto shadow-2xl">
+        <div className="no-print flex items-center justify-between pb-6 border-b border-slate-800">
+          <div>
+            <h2 className="text-base font-bold text-white flex items-center gap-2">
+              <Layers className="w-4 h-4 text-cyan-400" />
+              Pratinjau Lembar Fisik Tom & Jerry A4 (Skala Millimeter 1:1)
+            </h2>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Kotak bergaris putus-putus menunjukkan stiker kosong yang dilewati sesuai offset yang Anda atur.
+            </p>
+          </div>
+          <span className="text-xs font-mono font-bold text-cyan-400">
+            {selectedUnits.length} Stiker Aktif
+          </span>
+        </div>
 
-        {/* Printable Sheet Canvas */}
-        <div
-          className={`mx-auto bg-white text-black p-4 shadow-2xl rounded-sm grid ${gridColsClass} gap-2 w-full max-w-[800px] min-h-[550px] border border-slate-300`}
-        >
-          {gridItems.map((item, idx) => {
-            if (!item) {
+        {/* The Physical Sheet Canvas */}
+        <div className="pt-6 flex justify-center">
+          <div
+            className={`bg-[#fafaf9] text-black p-6 shadow-2xl rounded-sm grid ${gridColsClass} gap-2.5 w-full max-w-[850px] min-h-[600px] border border-slate-400/80`}
+            style={{ boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)" }}
+          >
+            {gridItems.map((item, idx) => {
+              if (!item) {
+                return (
+                  <div
+                    key={`blank_${idx}`}
+                    className="border border-dashed border-slate-300 rounded p-2 flex flex-col items-center justify-center text-[10px] text-slate-400/70 select-none"
+                  >
+                    <span className="no-print font-mono text-[9px]">#{idx + 1} Kosong</span>
+                  </div>
+                );
+              }
+
+              const qrUrl = qrCodeDataUrls[item.id];
+
               return (
                 <div
-                  key={`blank_${idx}`}
-                  className="border border-dashed border-slate-200 rounded p-2 flex flex-col items-center justify-center text-[10px] text-slate-300"
+                  key={`label_${item.id}_${idx}`}
+                  className="border border-slate-500/90 rounded p-2 flex items-center justify-between gap-1 overflow-hidden bg-white shadow-sm"
                 >
-                  <span className="no-print font-mono text-[9px]">#{idx + 1} Kosong</span>
+                  <div className="flex-1 min-w-0 pr-1">
+                    <div className="text-[9px] font-extrabold tracking-tight text-slate-900 leading-tight truncate">
+                      {item.customerName}
+                    </div>
+                    <div className="text-[10px] font-black font-mono text-black leading-tight truncate mt-0.5">
+                      {item.assetTag}
+                    </div>
+                    <div className="text-[8px] text-slate-700 leading-tight truncate font-medium">
+                      {item.brand} • {item.capacityPk} PK
+                    </div>
+                    <div className="text-[7.5px] text-slate-500 leading-tight truncate">
+                      {item.zoneName}
+                    </div>
+                  </div>
+
+                  {qrUrl && (
+                    <div className="w-11 h-11 shrink-0 flex items-center justify-center">
+                      <img src={qrUrl} alt={item.assetTag} className="w-full h-full object-contain" />
+                    </div>
+                  )}
                 </div>
               );
-            }
-
-            const qrUrl = qrCodeDataUrls[item.id];
-
-            return (
-              <div
-                key={`label_${item.id}_${idx}`}
-                className="border border-slate-400 rounded p-1.5 flex items-center justify-between gap-1 overflow-hidden bg-white"
-              >
-                <div className="flex-1 min-w-0 pr-1">
-                  <div className="text-[9px] font-bold tracking-tight text-slate-800 leading-tight truncate">
-                    {item.customerName}
-                  </div>
-                  <div className="text-[10px] font-black font-mono text-black leading-tight truncate mt-0.5">
-                    {item.assetTag}
-                  </div>
-                  <div className="text-[8px] text-slate-600 leading-tight truncate">
-                    {item.brand} • {item.capacityPk} PK
-                  </div>
-                  <div className="text-[7.5px] text-slate-500 leading-tight truncate">
-                    {item.zoneName}
-                  </div>
-                </div>
-
-                {qrUrl && (
-                  <div className="w-10 h-10 shrink-0 flex items-center justify-center">
-                    <img src={qrUrl} alt={item.assetTag} className="w-full h-full object-contain" />
-                  </div>
-                )}
-              </div>
-            );
-          })}
+            })}
+          </div>
         </div>
-      </div>
+      </section>
     </div>
   );
 }
