@@ -10,7 +10,7 @@ binding = "ASSETS"
 [[d1_databases]]
 binding = "DB"
 database_name = "crm-ac-db"
-database_id = "local-d1-crm-ac"
+database_id = "8a981c61-9b5d-400d-bce0-d2788ce159c5"
 migrations_dir = "drizzle/migrations"
 
 [[r2_buckets]]
