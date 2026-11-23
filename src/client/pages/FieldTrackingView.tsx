@@ -348,7 +348,7 @@ export function FieldTrackingView() {
             <button
               onClick={() => setStep("done")}
               disabled={!signed}
-              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed shadow-lg shadow-teal-500/10"
+              className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all"
             >
               Selesaikan Tiket & Terbitkan Faktur ➔
             </button>

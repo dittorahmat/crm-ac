@@ -31,13 +31,17 @@ bun run check
 This runs:
 1. `tsc --noEmit` (full backend and frontend static typecheck).
 2. `bun run check:glossary` (mechanical verification preventing banned terms like "client" / "klien" in both code and UI text).
-3. `bun run check:ui` (mechanical verification preventing legacy dark AI-slop tokens, non-existent Tailwind v4 classes, and enforcing semantic `<section>` views).
+3. `bun run check:ui` (mechanical verification preventing legacy dark AI-slop tokens, non-existent Tailwind v4 classes, legacy neon glow classes `shadow-(teal|cyan)`, enforcing semantic `<section>` views, and enforcing server fail-closed role resolution).
 4. `vite build` (bundle integrity check).
 
 To audit frontend design compliance with the taste-skill gate against a live dev server:
 ```bash
 bun run taste:check
 ```
+
+## Agent Tooling & Environment Conventions
+
+- **Windows CLI Economy**: The host environment runs Windows PowerShell. Avoid assuming POSIX binary availability (e.g. `grep`, `sed`, `awk` via `rtk`). Use PowerShell native cmdlets (`Select-String`) or Bun/Node scripts for fast cross-file text scanning.
 
 ## Agent Skills & Conventions
 
