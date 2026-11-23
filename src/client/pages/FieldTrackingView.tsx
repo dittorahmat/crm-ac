@@ -41,7 +41,7 @@ export function FieldTrackingView() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const isDrawingRef = useRef(false);
 
-  // Load active service order from D1 if available
+  // Load active service order and service items from D1
   useEffect(() => {
     async function loadActiveOrder() {
       try {
@@ -51,8 +51,24 @@ export function FieldTrackingView() {
           const inProgressOrDispatched = list.find(
             (item: any) => item.order.status === "DISPATCHED" || item.order.status === "IN_PROGRESS"
           );
-          if (inProgressOrDispatched) {
-            setServiceOrderId(inProgressOrDispatched.order.id);
+          const targetOrder = inProgressOrDispatched || list[0];
+          if (targetOrder) {
+            setServiceOrderId(targetOrder.order.id);
+            if (targetOrder.customer?.picName) {
+              setSignerName(`${targetOrder.customer.picName} (PIC Gedung)`);
+            }
+
+            // Fetch actual service item for this order
+            const itemsRes = await fetch(`/api/orders/${targetOrder.order.id}/items`);
+            if (itemsRes.ok) {
+              const items = (await itemsRes.json()) as any[];
+              if (Array.isArray(items) && items.length > 0) {
+                setServiceItemId(items[0].serviceItem.id);
+                if (items[0].acUnit?.assetTag) {
+                  setActiveUnitTag(items[0].acUnit.assetTag);
+                }
+              }
+            }
           }
         }
       } catch (err) {

@@ -47,6 +47,24 @@ ordersRouter.get("/orders", async (c) => {
   return c.json(list);
 });
 
+// Get service items for an order (with AC Unit metadata)
+ordersRouter.get("/orders/:id/items", async (c) => {
+  const db = c.get("db");
+  const orderId = c.req.param("id");
+
+  const items = await db
+    .select({
+      serviceItem: schema.serviceItems,
+      acUnit: schema.acUnits,
+    })
+    .from(schema.serviceItems)
+    .leftJoin(schema.acUnits, eq(schema.serviceItems.acUnitId, schema.acUnits.id))
+    .where(eq(schema.serviceItems.serviceOrderId, orderId))
+    .all();
+
+  return c.json(items);
+});
+
 // Create new scheduled service order with target AC units
 ordersRouter.post("/orders", async (c) => {
   const db = c.get("db");

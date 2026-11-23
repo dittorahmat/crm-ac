@@ -16,56 +16,37 @@ export function BarcodePrintView() {
   const [startOffset, setStartOffset] = useState<number>(0);
   const [qrCodeDataUrls, setQrCodeDataUrls] = useState<Record<string, string>>({});
 
-  const [units] = useState<PrintableUnit[]>([
-    {
-      id: "ac_1",
-      assetTag: "AC-MSF-SRV-01",
-      brand: "Daikin Inverter",
-      capacityPk: 2.0,
-      customerName: "PT. Mega Solusi",
-      zoneName: "Lt. 2 Ruang Server",
-    },
-    {
-      id: "ac_2",
-      assetTag: "AC-MSF-WRK-02",
-      brand: "Panasonic Inverter",
-      capacityPk: 2.0,
-      customerName: "PT. Mega Solusi",
-      zoneName: "Lt. 8 Workstation",
-    },
-    {
-      id: "ac_3",
-      assetTag: "AC-MSF-LOB-03",
-      brand: "Panasonic Cassette",
-      capacityPk: 3.0,
-      customerName: "PT. Mega Solusi",
-      zoneName: "Lobby Utama Lt. 1",
-    },
-    {
-      id: "ac_4",
-      assetTag: "AC-DNN-OPS-01",
-      brand: "Sharp Plasmacluster",
-      capacityPk: 1.5,
-      customerName: "CV. Digital Niaga",
-      zoneName: "Head Office Tebet",
-    },
-    {
-      id: "ac_5",
-      assetTag: "AC-STG-BDR-01",
-      brand: "Daikin Multi-S",
-      capacityPk: 3.0,
-      customerName: "PT. Surya Teknologi",
-      zoneName: "Graha Mandiri Lt. 12",
-    },
-  ]);
+  const [units, setUnits] = useState<PrintableUnit[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
 
-  const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([
-    "ac_1",
-    "ac_2",
-    "ac_3",
-    "ac_4",
-    "ac_5",
-  ]);
+  useEffect(() => {
+    async function loadUnits() {
+      try {
+        const res = await fetch("/api/ac-units");
+        if (res.ok) {
+          const list = (await res.json()) as any[];
+          if (Array.isArray(list)) {
+            const mapped = list.map((item) => ({
+              id: item.id,
+              assetTag: item.assetTag,
+              brand: item.brand,
+              capacityPk: item.capacityPk || 1.0,
+              customerName: item.customerName || "Customer",
+              zoneName: item.zoneName || "Ruang",
+            }));
+            setUnits(mapped);
+            setSelectedUnitIds(mapped.map((u) => u.id));
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch printable AC units:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadUnits();
+  }, []);
 
   useEffect(() => {
     async function generateQrs() {

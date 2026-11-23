@@ -123,7 +123,7 @@ settingsRouter.post("/settings/test-whatsapp", async (c) => {
     id: `walog_test_${Date.now()}`,
     recipientPhone: targetPhone,
     messageType: "routine_reminder",
-    provider: (result.provider as any) || "mock",
+    provider: (result.provider as any) || "fonnte",
     status: result.success ? "SENT" : "FAILED",
     errorMessage: result.error || null,
     createdAt: new Date(),

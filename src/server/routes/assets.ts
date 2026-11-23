@@ -199,10 +199,36 @@ assetsRouter.post("/zones", async (c) => {
   return c.json({ id, ...parsed }, 201);
 });
 
-// AC Units
+// AC Units (with Customer and Zone information for barcode printing and asset explorer)
 assetsRouter.get("/ac-units", async (c) => {
   const db = c.get("db");
-  const list = await db.select().from(schema.acUnits).all();
+  const list = await db
+    .select({
+      id: schema.acUnits.id,
+      customerId: schema.acUnits.customerId,
+      locationId: schema.acUnits.locationId,
+      zoneId: schema.acUnits.zoneId,
+      assetTag: schema.acUnits.assetTag,
+      brand: schema.acUnits.brand,
+      modelNumber: schema.acUnits.modelNumber,
+      serialNumber: schema.acUnits.serialNumber,
+      acType: schema.acUnits.acType,
+      capacityPk: schema.acUnits.capacityPk,
+      refrigerantType: schema.acUnits.refrigerantType,
+      serviceIntervalMonths: schema.acUnits.serviceIntervalMonths,
+      status: schema.acUnits.status,
+      notes: schema.acUnits.notes,
+      lastServiceDate: schema.acUnits.lastServiceDate,
+      nextServiceDueDate: schema.acUnits.nextServiceDueDate,
+      customerName: schema.customers.name,
+      zoneName: schema.zones.name,
+      locationName: schema.locations.name,
+    })
+    .from(schema.acUnits)
+    .leftJoin(schema.customers, eq(schema.acUnits.customerId, schema.customers.id))
+    .leftJoin(schema.locations, eq(schema.acUnits.locationId, schema.locations.id))
+    .leftJoin(schema.zones, eq(schema.acUnits.zoneId, schema.zones.id))
+    .all();
   return c.json(list);
 });
 
