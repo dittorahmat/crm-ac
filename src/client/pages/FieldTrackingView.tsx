@@ -34,14 +34,16 @@ export function FieldTrackingView() {
   const [uploading, setUploading] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string>("Siap Sinkron R2");
 
-  // Signer
+  // Signer & Real Canvas
   const [signerName, setSignerName] = useState("Bpk. Rahmat (PIC Gedung)");
   const [signed, setSigned] = useState(false);
   const [submittingFinal, setSubmittingFinal] = useState(false);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const isDrawingRef = useRef(false);
 
-  // Load active service item and order from D1 if available
+  // Load active service order from D1 if available
   useEffect(() => {
-    async function loadActiveTask() {
+    async function loadActiveOrder() {
       try {
         const res = await fetch("/api/orders");
         if (res.ok) {
@@ -54,10 +56,10 @@ export function FieldTrackingView() {
           }
         }
       } catch (err) {
-        console.error("Failed to load active task from D1:", err);
+        console.error("Failed to load active order from D1:", err);
       }
     }
-    loadActiveTask();
+    loadActiveOrder();
   }, []);
 
   // Upload handler for R2
@@ -92,6 +94,50 @@ export function FieldTrackingView() {
     }
   };
 
+  // Canvas drawing handlers
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    isDrawingRef.current = true;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = ("touches" in e) ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    const y = ("touches" in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDrawingRef.current) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    const rect = canvas.getBoundingClientRect();
+    const x = ("touches" in e) ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
+    const y = ("touches" in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.strokeStyle = "#1d4ed8";
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    setSigned(true);
+  };
+
+  const stopDrawing = () => {
+    isDrawingRef.current = false;
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    setSigned(false);
+  };
+
   // Save Measurements to D1
   const handleSaveMeasurements = async () => {
     setSyncStatus("Menyimpan parameter...");
@@ -117,17 +163,19 @@ export function FieldTrackingView() {
     }
   };
 
-  // Complete Order & Save Signature to R2 + D1
+  // Complete Order & Save Signature to R2 + D1 (Technicians DO NOT call invoice generation)
   const handleCompleteOrder = async () => {
     setSubmittingFinal(true);
-    setSyncStatus("Merekam tanda tangan & faktur...");
+    setSyncStatus("Merekam tanda tangan...");
     try {
-      const dummySignatureCanvas = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+      const canvas = canvasRef.current;
+      const signatureDataUrl = canvas ? canvas.toDataURL("image/png") : "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+
       const res = await fetch(`/api/orders/${serviceOrderId}/complete`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          signatureDataUrl: dummySignatureCanvas,
+          signatureDataUrl,
           signerName,
           rating: 5,
           feedback: "Pekerjaan rapi dan tepat waktu.",
@@ -135,13 +183,7 @@ export function FieldTrackingView() {
       });
 
       if (res.ok) {
-        // Trigger automated invoice generation
-        await fetch("/api/invoices/generate", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ serviceOrderId }),
-        });
-        setSyncStatus("Order tuntas & faktur terbit");
+        setSyncStatus("Order selesai tervalidasi");
         setStep("done");
       } else {
         alert("Gagal menyelesaikan order di server.");
@@ -242,11 +284,27 @@ export function FieldTrackingView() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Before Photo */}
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-              <span className="text-xs font-bold text-slate-700">Foto SEBELUM Dikerjakan</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700">Foto SEBELUM Dikerjakan</span>
+                <label className="text-[11px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer flex items-center gap-1">
+                  <Upload className="w-3 h-3" />
+                  Pilih Foto
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleUploadPhoto("before", e.target.files[0]);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
               {beforePhoto ? (
                 <div className="relative rounded-lg overflow-hidden h-44 border border-slate-200">
                   <img src={beforePhoto} alt="Before" className="w-full h-full object-cover" />
-                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 text-[10px] text-slate-900">
+                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 text-[10px] text-white">
                     Filter Kotor & Evaporator Berdebu
                   </span>
                 </div>
@@ -260,11 +318,27 @@ export function FieldTrackingView() {
 
             {/* After Photo */}
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-              <span className="text-xs font-bold text-slate-700">Foto SESUDAH Dikerjakan</span>
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-700">Foto SESUDAH Dikerjakan</span>
+                <label className="text-[11px] font-bold text-blue-600 hover:text-blue-700 cursor-pointer flex items-center gap-1">
+                  <Upload className="w-3 h-3" />
+                  Pilih Foto
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        handleUploadPhoto("after", e.target.files[0]);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
               {afterPhoto ? (
                 <div className="relative rounded-lg overflow-hidden h-44 border border-slate-200">
                   <img src={afterPhoto} alt="After" className="w-full h-full object-cover" />
-                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-teal-950/80 text-[10px] text-blue-700 border border-teal-500/30">
+                  <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-blue-900/80 text-[10px] text-white border border-blue-400/30">
                     Evaporator Bersih & Aliran Lancar
                   </span>
                 </div>
@@ -424,37 +498,35 @@ export function FieldTrackingView() {
               />
             </div>
 
-            {/* Signature Box Simulation */}
+            {/* HTML5 Signature Canvas */}
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-xs text-slate-500">Goreskan Tanda Tangan:</span>
+                <span className="text-xs font-semibold text-slate-700">Tanda Tangan PIC Pelanggan:</span>
                 <button
                   type="button"
-                  onClick={() => setSigned(false)}
-                  className="text-[11px] text-blue-600 hover:underline"
+                  onClick={clearCanvas}
+                  className="text-[11px] font-bold text-red-600 hover:text-red-700"
                 >
-                  Reset Tanda Tangan
+                  Hapus Tanda Tangan
                 </button>
               </div>
 
-              <div
-                onClick={() => setSigned(true)}
-                className="h-36 bg-white border border-dashed border-slate-300 rounded-xl flex items-center justify-center cursor-pointer select-none"
-              >
-                {signed ? (
-                  <div className="text-center">
-                    <span className="text-2xl font-serif italic text-blue-600">
-                      Rahmat H.
-                    </span>
-                    <p className="text-[10px] text-slate-500 mt-1">Tanda Tangan Terekam (Digital WebP)</p>
-                  </div>
-                ) : (
-                  <span className="text-xs text-slate-500 flex items-center gap-2">
-                    <PenTool className="w-4 h-4" />
-                    Ketuk atau usap di sini untuk tanda tangan
-                  </span>
-                )}
+              <div className="bg-white border border-slate-300 rounded-xl overflow-hidden shadow-inner">
+                <canvas
+                  ref={canvasRef}
+                  width={600}
+                  height={160}
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseLeave={stopDrawing}
+                  onTouchStart={startDrawing}
+                  onTouchMove={draw}
+                  onTouchEnd={stopDrawing}
+                  className="w-full h-36 touch-none cursor-crosshair bg-white"
+                />
               </div>
+              <p className="text-[10px] text-slate-500 text-center">Goreskan tanda tangan di atas kotak putih</p>
             </div>
           </div>
 
@@ -471,7 +543,7 @@ export function FieldTrackingView() {
               className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white shadow-sm font-bold text-xs disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2"
             >
               {submittingFinal && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-              Selesaikan Tiket & Terbitkan Faktur ➔
+              Selesaikan Order Servis & Simpan Bukti ➔
             </button>
           </div>
         </div>

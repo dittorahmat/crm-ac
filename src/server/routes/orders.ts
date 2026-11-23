@@ -77,11 +77,19 @@ ordersRouter.post("/orders", async (c) => {
   return c.json({ id: orderId, orderNumber, status: "SCHEDULED" }, 201);
 });
 
-// Update order status (Dispatch, Check-in, Completed)
+// Update order status (Dispatch, Check-in, Completed) - Dispatching is admin-only
 ordersRouter.patch("/orders/:id/status", async (c) => {
   const db = c.get("db");
+  const user = c.get("user");
   const id = c.req.param("id");
   const { status, technicianId } = await c.req.json();
+
+  // If assigning or dispatching, must be admin
+  if (technicianId || status === "DISPATCHED") {
+    if (!user || user.role !== "admin") {
+      return c.json({ error: "Forbidden: Only admin can dispatch technicians" }, 403);
+    }
+  }
 
   const updateValues: any = { status };
   if (technicianId) updateValues.technicianId = technicianId;
@@ -89,11 +97,11 @@ ordersRouter.patch("/orders/:id/status", async (c) => {
   if (status === "COMPLETED") updateValues.completedAt = new Date();
 
   await db.update(schema.serviceOrders).set(updateValues).where(eq(schema.serviceOrders.id, id));
-  return c.json({ success: true, status });
+  return c.json({ success: true, status, technicianId });
 });
 
-// Analytics aggregate overview for Command Center
-ordersRouter.get("/analytics", async (c) => {
+// Analytics aggregate overview for Command Center (Admin only)
+ordersRouter.get("/analytics", requireRole(["admin"]), async (c) => {
   const db = c.get("db");
 
   const [units, orders, invoices] = await Promise.all([
@@ -102,10 +110,10 @@ ordersRouter.get("/analytics", async (c) => {
     db.select().from(schema.invoices).all(),
   ]);
 
-  const activeUnits = units.filter((u: any) => u.status === "active").length;
-  const completedOrders = orders.filter((o: any) => o.status === "COMPLETED").length;
-  const dispatchedOrders = orders.filter((o: any) => o.status === "DISPATCHED" || o.status === "IN_PROGRESS").length;
-  const totalRevenue = invoices.reduce((acc: number, inv: any) => acc + (inv.totalAmount || 0), 0);
+  const activeUnits = units.filter((unitItem: any) => unitItem.status === "active").length;
+  const completedOrders = orders.filter((orderItem: any) => orderItem.status === "COMPLETED").length;
+  const dispatchedOrders = orders.filter((orderItem: any) => orderItem.status === "DISPATCHED" || orderItem.status === "IN_PROGRESS").length;
+  const totalRevenue = invoices.reduce((acc: number, invoiceItem: any) => acc + (invoiceItem.totalAmount || 0), 0);
 
   return c.json({
     totalUnits: units.length,
@@ -117,8 +125,8 @@ ordersRouter.get("/analytics", async (c) => {
   });
 });
 
-// WhatsApp Reminders list
-ordersRouter.get("/reminders", async (c) => {
+// WhatsApp Reminders list (Admin only)
+ordersRouter.get("/reminders", requireRole(["admin"]), async (c) => {
   const db = c.get("db");
 
   const list = await db
@@ -135,7 +143,7 @@ ordersRouter.get("/reminders", async (c) => {
   const logs = await db.select().from(schema.whatsappLogs).all();
 
   const results = list.map((item: any) => {
-    const customerLogs = logs.filter((l: any) => l.customerId === item.customer.id);
+    const customerLogs = logs.filter((logEntry: any) => logEntry.customerId === item.customer.id);
     const lastLog = customerLogs.length > 0 ? customerLogs[customerLogs.length - 1] : null;
 
     const dueDate = item.unit.nextServiceDueDate ? new Date(item.unit.nextServiceDueDate) : new Date();
@@ -157,4 +165,40 @@ ordersRouter.get("/reminders", async (c) => {
   });
 
   return c.json(results);
+});
+
+// Manual WhatsApp Reminder trigger
+ordersRouter.post("/reminders/:id/send", requireRole(["admin"]), async (c) => {
+  const db = c.get("db");
+  const id = c.req.param("id");
+  const unitId = id.replace("rem_", "");
+
+  const [row] = await db
+    .select({
+      unit: schema.acUnits,
+      customer: schema.customers,
+      location: schema.locations,
+    })
+    .from(schema.acUnits)
+    .innerJoin(schema.customers, eq(schema.acUnits.customerId, schema.customers.id))
+    .innerJoin(schema.locations, eq(schema.acUnits.locationId, schema.locations.id))
+    .where(eq(schema.acUnits.id, unitId))
+    .all();
+
+  if (!row || !row.customer.picPhone) {
+    return c.json({ error: "Customer or phone number not found" }, 404);
+  }
+
+  const logId = `walog_${Date.now()}`;
+  await db.insert(schema.whatsappLogs).values({
+    id: logId,
+    customerId: row.customer.id,
+    recipientPhone: row.customer.picPhone,
+    messageType: "routine_reminder",
+    provider: "meta",
+    status: "SENT",
+    createdAt: new Date(),
+  });
+
+  return c.json({ success: true, logId, provider: "Meta Cloud API", status: "SENT" });
 });

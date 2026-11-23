@@ -28,6 +28,7 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
   const [qrUrl, setQrUrl] = useState<string>("");
   const [liveData, setLiveData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
   useEffect(() => {
     async function fetchUnit() {
@@ -37,6 +38,9 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
         if (res.ok) {
           const data = await res.json();
           setLiveData(data);
+          setNotFound(false);
+        } else if (res.status === 404) {
+          setNotFound(true);
         }
       } catch (err) {
         console.error("Failed to load unit details from D1:", err);
@@ -47,6 +51,29 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
     fetchUnit();
   }, [assetTag]);
 
+  if (notFound) {
+    return (
+      <div className="space-y-6">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Kembali ke Daftar Aset
+        </button>
+        <section className="bg-white border border-slate-200 rounded-3xl p-12 text-center space-y-4 shadow-sm">
+          <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto border border-amber-200">
+            <QrCode className="w-6 h-6" />
+          </div>
+          <h2 className="text-lg font-bold text-slate-900">Unit AC Tidak Ditemukan</h2>
+          <p className="text-xs text-slate-500 max-w-sm mx-auto">
+            Asset tag <strong className="font-mono text-slate-800">{assetTag}</strong> belum terdaftar di database D1 atau barcode tidak valid.
+          </p>
+        </section>
+      </div>
+    );
+  }
+
   // Derived or fallback unit passport
   const unit = liveData
     ? {
@@ -56,7 +83,7 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
         customerEmail: liveData.customer?.picEmail || "procurement@koolsync.com",
         locationName: liveData.location?.name || "Gedung Kantor",
         address: liveData.location?.address || "Jakarta",
-        zoneFloor: `${liveData.zone?.name || "Area Operasional"} (Lt. ${liveData.zone?.floor || "1"})`,
+        zoneFloor: `${liveData.zone?.name || "Ruang Operasional"} (Lt. ${liveData.zone?.floor || "1"})`,
         brandModel: `${liveData.unit.brand} ${liveData.unit.modelNumber || ""}`,
         modelNumber: liveData.unit.modelNumber || "FTKC25TV",
         serialNumber: liveData.unit.serialNumber || "SN-DKN-88219-JKT",
@@ -121,7 +148,7 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
         customerEmail: "procurement@megasolusi.co.id",
         locationName: "Gedung Wisma Sudirman",
         address: "Jl. Jend. Sudirman Kav. 24, Jakarta Pusat",
-        zoneFloor: "Lantai 2 - Ruang Server Utama (Area Kritis)",
+        zoneFloor: "Lantai 2 - Ruang Server Utama (Zona Kritis)",
         brandModel: "Daikin Inverter In-Room Cooling Heavy Duty",
         modelNumber: "FTKC25TV",
         serialNumber: "SN-DKN-88219-JKT",

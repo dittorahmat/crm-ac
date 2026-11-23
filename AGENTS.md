@@ -9,7 +9,9 @@ Instructions and configuration for AI agents working in this repository.
 - **WhatsApp Gateway**: Official Meta Cloud API with Fonnte/Waha resilient fallback. See `docs/adr/0002-whatsapp-adapter-and-fallback.md`.
 - **Auth & RBAC**: Better-Auth with D1 adapter, enforcing `admin` and `technician` roles. See `docs/adr/0004-better-auth-on-cloudflare-d1.md` and `docs/adr/0005-role-based-access-control.md`.
   - **Fail-Closed RBAC Principle**: Role resolution MUST fail closed (`403 Forbidden` if missing or unverified). Never fall back to default roles (e.g. `user.role || 'technician'`) or mock elevated `admin` privileges in production authentication callbacks.
-  - **Hono Route Protection**: Route middleware protecting sub-resources and mutations must use wildcard patterns (`assetsRouter.use("*", ...)`) or explicit array matching so that parameterized subpaths (e.g. `/customers/:id`) are never left unguarded.
+  - **Hono Route Protection**: Route middleware protecting sub-resources and mutations must use wildcard patterns (`assetsRouter.use("*", ...)`) or explicit array matching so that parameterized subpaths (e.g. `/customers/:id`) are never left unguarded. Sensitive admin data (`/api/analytics`, `/api/reminders`, `/api/invoices/**`, and order dispatch/assignment mutations) must strictly require `requireRole(["admin"])`.
+  - **Separation of Concerns (Field Tech vs Admin)**: Field technicians are strictly forbidden from directly generating invoices or modifying master billing records. Invoice generation is triggered only by admin approval or automated backend lifecycles upon validated service completion.
+  - **No Pseudo/Mock Evidence in Field Tracking**: Field tracking flows must use real HTML5 `<canvas>` elements for signature capture and actual `<input type="file" accept="image/*">` for R2 photo evidence capture—never fake placeholder click-boxes or hardcoded 1x1 base64 pixels.
 
 ## Frontend & Design Quality Rules (Clean B2B Standard)
 

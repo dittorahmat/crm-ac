@@ -94,18 +94,18 @@ export function InvoiceManagementView() {
             Faktur & Tagihan Servis (Otomatis Email PDF)
           </h2>
           <p className="text-xs md:text-sm text-slate-500">
-            Faktur otomatis dibuat saat teknisi menyelesaikan tiket, disimpan di R2, dan dikirim via transactional email
+            Faktur otomatis dibuat dari order servis yang tuntas, disimpan di R2, dan dikirim via transactional email
           </p>
         </div>
       </div>
 
-            {/* Invoice List */}
+      {/* Invoice List */}
       <section className="bg-white border border-slate-200 rounded-2xl p-5 space-y-4 shadow-sm">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-500">
             Daftar Tagihan B2B
           </h3>
-          <span className="text-[11px] text-blue-600">3 Faktur Diterbitkan</span>
+          <span className="text-[11px] text-blue-600">{invoices.length} Faktur Terbit</span>
         </div>
 
         <div className="space-y-3">
@@ -153,28 +153,41 @@ export function InvoiceManagementView() {
                 </div>
               </div>
 
-              {/* Amount & Actions */}
+              {/* Amount Breakdown & Actions */}
               <div className="flex items-center justify-between lg:justify-end gap-6 pt-2 lg:pt-0 border-t lg:border-t-0 border-slate-200">
-                <div className="text-left lg:text-right">
-                  <span className="text-[10px] text-slate-500 block uppercase font-bold tracking-wider">
-                    Total Tagihan
-                  </span>
-                  <span className="text-base font-bold text-slate-900 font-mono">
-                    Rp {inv.totalAmount.toLocaleString("id-ID")}
-                  </span>
-                  <span className="text-[10px] text-slate-500 block">
-                    Termasuk PPN 11% (Rp {inv.taxAmount.toLocaleString("id-ID")})
-                  </span>
+                <div className="text-left lg:text-right space-y-0.5">
+                  <div className="text-[11px] text-slate-500 font-mono">
+                    Subtotal: <strong>Rp {inv.subtotal.toLocaleString("id-ID")}</strong>
+                  </div>
+                  <div className="text-[11px] text-slate-500 font-mono">
+                    PPN (11%): <strong>Rp {inv.taxAmount.toLocaleString("id-ID")}</strong>
+                  </div>
+                  <div className="text-base font-extrabold text-slate-900 font-mono">
+                    Total: Rp {inv.totalAmount.toLocaleString("id-ID")}
+                  </div>
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => alert(`Mengunduh PDF Faktur: ${inv.invoiceNumber}`)}
-                    className="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm transition-colors"
-                    title="Unduh PDF"
-                  >
-                    <Download className="w-4 h-4" />
-                  </button>
+                  {inv.pdfUrl ? (
+                    <a
+                      href={inv.pdfUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="p-2 rounded-xl bg-white hover:bg-slate-100 text-blue-600 hover:text-blue-800 border border-slate-200 shadow-sm transition-colors flex items-center gap-1 text-xs font-bold"
+                      title="Buka Dokumen Faktur R2"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span className="hidden sm:inline">R2 Faktur</span>
+                    </a>
+                  ) : (
+                    <button
+                      onClick={() => alert(`Faktur ${inv.invoiceNumber} sedang di-render di R2 storage`)}
+                      className="p-2 rounded-xl bg-white hover:bg-slate-100 text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm transition-colors"
+                      title="Lihat Faktur"
+                    >
+                      <Download className="w-4 h-4" />
+                    </button>
+                  )}
 
                   {inv.status === "DRAFT" && (
                     <button

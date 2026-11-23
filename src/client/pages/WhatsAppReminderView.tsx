@@ -56,16 +56,26 @@ export function WhatsAppReminderView() {
     fetchReminders();
   }, []);
 
-  const handleManualSend = (id: string) => {
+  const handleManualSend = async (id: string) => {
     setSendingId(id);
-    setTimeout(() => {
-      setReminders((prev) =>
-        prev.map((r) =>
-          r.id === id ? { ...r, lastSentStatus: "SENT" } : r
-        )
-      );
+    try {
+      const res = await fetch(`/api/reminders/${id}/send`, {
+        method: "POST",
+      });
+      if (res.ok) {
+        setReminders((prev) =>
+          prev.map((r) =>
+            r.id === id ? { ...r, lastSentStatus: "SENT" } : r
+          )
+        );
+      } else {
+        alert("Gagal mengirim pengingat WhatsApp.");
+      }
+    } catch (err) {
+      console.error("Failed to send WhatsApp reminder:", err);
+    } finally {
       setSendingId(null);
-    }, 1000);
+    }
   };
 
   return (
