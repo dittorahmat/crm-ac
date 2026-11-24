@@ -113,7 +113,7 @@ export function SystemSettingsView() {
   };
 
   return (
-    <main className="space-y-6 wrap">
+    <div className="space-y-6 wrap">
       {/* Header */}
       <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -343,6 +343,6 @@ export function SystemSettingsView() {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }

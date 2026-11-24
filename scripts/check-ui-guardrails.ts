@@ -117,11 +117,16 @@ function checkFrontendIntegrity(dir: string, violations: string[]) {
         }
       });
 
-      // Semantic check: Major views in pages/ must contain semantic <section> tag
+      // Semantic check: Major views in pages/ must contain semantic <section> tag and must NOT declare nested <main>
       if (fullPath.includes(path.join("pages")) && entry.name.endsWith("View.tsx")) {
         if (!content.includes("<section")) {
           violations.push(
             `${fullPath} - View is missing semantic <section> tag (violates AGENTS.md Rule 5)`
+          );
+        }
+        if (content.includes("<main")) {
+          violations.push(
+            `${fullPath} - Nested <main> tag detected in view. Primary <main> container must reside only in App.tsx (violates AGENTS.md Rule 5).`
           );
         }
       }
