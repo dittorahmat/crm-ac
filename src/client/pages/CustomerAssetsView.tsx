@@ -311,7 +311,11 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
 
       {/* Add Unit Modal */}
       {showAddUnitModal && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div 
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
           <div className="w-full max-w-md bg-white border border-slate-200 rounded-2xl p-6 shadow-xl">
             <h3 className="text-base font-bold text-slate-900 mb-1">Registrasi Unit AC Baru</h3>
             <p className="text-xs text-slate-500 mb-4">

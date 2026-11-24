@@ -93,7 +93,6 @@ function checkFrontendIntegrity(dir: string, violations: string[]) {
 
         // Prevent false-positive notification delivery status: marking SENT without verifying data.success
         if (line.includes('status: "SENT"') || line.includes("status: 'SENT'")) {
-          // Check previous 10 lines for res.ok check without data.success
           const start = Math.max(0, lineNum - 12);
           const block = lines.slice(start, lineNum).join("\n");
           if (block.includes("if (res.ok)") && !block.includes("data.success")) {
@@ -101,6 +100,20 @@ function checkFrontendIntegrity(dir: string, violations: string[]) {
               `${fullPath}:${lineNum + 1} - Found false-positive delivery check: must verify 'res.ok && data.success === true' before marking SENT.`
             );
           }
+        }
+
+        // Prevent ad-hoc split("/ac/") URL parsing: must use 'parseAssetTagFromUrl' from client/lib/scanner
+        if (line.includes('.split("/ac/")') && !fullPath.includes(path.join("lib", "scanner.ts"))) {
+          violations.push(
+            `${fullPath}:${lineNum + 1} - Direct string splitting on '/ac/' is banned. Use 'parseAssetTagFromUrl' from client/lib/scanner.`
+          );
+        }
+
+        // Prevent modal overlay without role="dialog" accessibility attribute
+        if (line.includes("fixed inset-0") && !content.includes('role="dialog"') && !content.includes("role='dialog'")) {
+          violations.push(
+            `${fullPath}:${lineNum + 1} - Modal/Dialog overlay (fixed inset-0) is missing accessible 'role="dialog"' attribute.`
+          );
         }
       });
 

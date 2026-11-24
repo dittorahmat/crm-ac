@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { LoginPage } from "./pages/LoginPage";
 import { CustomerAssetsView } from "./pages/CustomerAssetsView";
 import { BarcodePrintView } from "./pages/BarcodePrintView";
@@ -9,8 +9,11 @@ import { WhatsAppReminderView } from "./pages/WhatsAppReminderView";
 import { AnalyticsDashboardView } from "./pages/AnalyticsDashboardView";
 import { ACUnitDetailView } from "./pages/ACUnitDetailView";
 import { SystemSettingsView } from "./pages/SystemSettingsView";
-import { BarcodeScanModal } from "./components/BarcodeScanModal";
 import { parseAssetTagFromUrl } from "./lib/scanner";
+
+const BarcodeScanModal = lazy(() =>
+  import("./components/BarcodeScanModal").then((m) => ({ default: m.BarcodeScanModal }))
+);
 import { 
   Building2, 
   QrCode, 
@@ -209,13 +212,17 @@ export function App() {
         </div>
       </aside>
 
-      {/* Barcode & QR Code Live Scanner Modal */}
-      <BarcodeScanModal
-        isOpen={showScanModal}
-        onClose={() => setShowScanModal(false)}
-        onSelectTag={handleScannedTag}
-        userRole={currentRole}
-      />
+      {/* Barcode & QR Code Live Scanner Modal (Code-split via React.lazy) */}
+      {showScanModal && (
+        <Suspense fallback={null}>
+          <BarcodeScanModal
+            isOpen={showScanModal}
+            onClose={() => setShowScanModal(false)}
+            onSelectTag={handleScannedTag}
+            userRole={currentRole}
+          />
+        </Suspense>
+      )}
 
       {/* Semantic Main Content Area */}
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10 bg-slate-50 min-h-screen">
