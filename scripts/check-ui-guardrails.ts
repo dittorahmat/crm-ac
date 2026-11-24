@@ -135,6 +135,57 @@ function checkFrontendIntegrity(dir: string, violations: string[]) {
 }
 
 const violations: string[] = [];
+
+// Mechanical check 1: Pure TypeScript rule (no raw .js/.jsx in root, src, scripts, docs)
+function checkPureTypeScript(violations: string[]) {
+  const rootDir = process.cwd();
+  const checkedDirs = ["src", "scripts", "docs"];
+  
+  for (const d of checkedDirs) {
+    const dirPath = path.join(rootDir, d);
+    if (!fs.existsSync(dirPath)) continue;
+    const scanDir = (curr: string) => {
+      const items = fs.readdirSync(curr, { withFileTypes: true });
+      for (const item of items) {
+        const full = path.join(curr, item.name);
+        if (item.isDirectory()) {
+          scanDir(full);
+        } else if (/\.(js|jsx|mjs|cjs)$/.test(item.name)) {
+          violations.push(
+            `${full} - Found raw JavaScript file. All code and scripts must be TypeScript (.ts / .tsx).`
+          );
+        }
+      }
+    };
+    scanDir(dirPath);
+  }
+
+  // Also check root directory for loose .js files (e.g. tailwind.config.js, postcss.config.js)
+  const rootItems = fs.readdirSync(rootDir, { withFileTypes: true });
+  for (const item of rootItems) {
+    if (!item.isDirectory() && /\.(js|jsx|mjs|cjs)$/.test(item.name)) {
+      violations.push(
+        `${path.join(rootDir, item.name)} - Found raw JavaScript file in repository root. All config files must be TypeScript.`
+      );
+    }
+  }
+}
+
+// Mechanical check 2: GitHub Linguist hygiene (.gitattributes must mark agent skills & vendored assets)
+function checkLinguistHygiene(violations: string[]) {
+  const gitattributesPath = path.join(process.cwd(), ".gitattributes");
+  if (!fs.existsSync(gitattributesPath)) {
+    violations.push(".gitattributes is missing. Must exist to protect GitHub language statistics.");
+    return;
+  }
+  const content = fs.readFileSync(gitattributesPath, "utf-8");
+  if (!content.includes(".agents/** linguist-vendored")) {
+    violations.push(".gitattributes must include '.agents/** linguist-vendored' to ignore AI skills from repository language stats.");
+  }
+}
+
+checkPureTypeScript(violations);
+checkLinguistHygiene(violations);
 checkFrontendIntegrity(path.resolve(process.cwd(), "src", "client"), violations);
 checkServerSecurity(path.resolve(process.cwd(), "src", "server"), violations);
 
@@ -144,5 +195,5 @@ if (violations.length > 0) {
   console.error("\nPlease follow the Clean B2B Standard & Security Guidelines documented in AGENTS.md.\n");
   process.exit(1);
 } else {
-  console.log("✅ Frontend UI standards & Server RBAC integrity verified clean.");
+  console.log("✅ Frontend UI standards, Server RBAC, Pure TypeScript & Linguist hygiene verified clean.");
 }

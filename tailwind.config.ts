@@ -1,4 +1,5 @@
-/** @type {import('tailwindcss').Config} */
+import type { Config } from 'tailwindcss'
+
 export default {
   content: [
     "./index.html",
@@ -25,10 +26,7 @@ export default {
         sans: ["'Plus Jakarta Sans'", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
         mono: ["'JetBrains Mono'", "monospace"],
       },
-      boxShadow: {
-        'glow-cold': '0 0 25px -5px rgba(6, 182, 212, 0.25)',
-      }
     },
   },
   plugins: [],
-}
+} satisfies Config
