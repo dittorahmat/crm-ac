@@ -24,7 +24,10 @@ Whenever creating, restyling, or extending frontend components, agents MUST foll
 2. **Tailwind v3 Compliance**: The project runs Tailwind CSS v3. Do NOT use non-existent Tailwind v4 classes such as `shadow-xs` (use `shadow-sm` or `shadow`), `backdrop-blur-xs` (use `backdrop-blur-sm`), or unconfigured utility classes.
 3. **Operational State Fidelity**: Preserve real-time operational visual indicators such as `animate-pulse` on active server/cloud/device status indicators.
 4. **Real Visuals Only**: Use authentic, high-resolution commercial HVAC equipment photography and real product assets—never empty ground or generic placeholder icons alone.
-5. **Semantic HTML Structure**: Every major view must use valid `<main>` and `<section>` tags inside a `.wrap` container with equal outer gutters. Do not use unsemantic top-level `<div>` wraps for full-page views.
+5. **Semantic HTML & Layout Architecture**:
+   - The top-level application shell (`App.tsx`) provides the single primary `<main className="... wrap">` container wrapping all dynamic views.
+   - Individual view components (`src/client/pages/*View.tsx`) must NEVER declare nested `<main>` tags (which violates HTML5 landmark specifications). Instead, views must use `<div className="space-y-* wrap">` with nested semantic `<section>` blocks for each logical module card.
+   - Mobile drawers and dialogs MUST provide an accessible backdrop overlay (`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40`) with `role="dialog"` / `aria-modal="true"`, an explicit close button (`<X />`), and click-outside dismissal behavior.
 6. **Domain Vocabulary Compliance**: Respect canonical domain terms from `GLOSSARY.md` (e.g. use `Zone` or `Ruang`, avoid `Area` or `Compartment`; use `Customer` never `Client`/`Klien`; `ACUnit` never `Device`; `ServiceOrder` never `Task`).
 7. **Physical Label Printing**: Die-cut sticker sheets (Tom & Jerry #108 / #103) strictly require `@page { size: A4; margin: 0 !important; }` and zero body padding in print media to ensure exact physical alignment.
 
@@ -37,7 +40,7 @@ bun run check
 This runs:
 1. `tsc --noEmit` (full backend and frontend static typecheck).
 2. `bun run check:glossary` (mechanical verification preventing banned terms like "client" / "klien" in both code and UI text).
-3. `bun run check:ui` (mechanical verification preventing legacy dark AI-slop tokens, non-existent Tailwind v4 classes, legacy neon glow classes `shadow-(teal|cyan)`, enforcing semantic `<section>` views, and enforcing server fail-closed role resolution).
+3. `bun run check:ui` (mechanical verification preventing legacy dark AI-slop tokens, non-existent Tailwind v4 classes, legacy neon glow classes `shadow-(teal|cyan)`, enforcing semantic `<section>` views, prohibiting nested `<main>` tags in views, and enforcing server fail-closed role resolution).
 4. `vite build` (bundle integrity check).
 
 To audit frontend design compliance with the taste-skill gate against a live dev server:
@@ -48,6 +51,7 @@ bun run taste:check
 ## Agent Tooling & Environment Conventions
 
 - **Windows CLI Economy**: The host environment runs Windows PowerShell. Avoid assuming POSIX binary availability (e.g. `grep`, `sed`, `awk` via `rtk`). Use PowerShell native cmdlets (`Select-String`) or Bun/Node scripts for fast cross-file text scanning.
+- **Vite Host Binding on Windows**: Dev servers must bind explicitly to IPv4 (`127.0.0.1` or `--host 127.0.0.1`) to prevent Windows IPv6 dual-stack permission crashes (`EACCES ::1:3000`). Preconfigured in `vite.config.ts` and `package.json`.
 
 ## Agent Skills & Conventions
 

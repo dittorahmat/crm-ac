@@ -126,22 +126,43 @@ export function App() {
         </button>
       </header>
 
+      {/* Mobile Drawer Backdrop */}
+      {mobileMenuOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navigasi Menu Mobile"
+          onClick={() => setMobileMenuOpen(false)}
+          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden transition-opacity"
+        />
+      )}
+
       {/* Sidebar Navigation */}
       <aside
         className={`${
-          mobileMenuOpen ? "block" : "hidden"
-        } md:block w-full md:w-72 bg-white border-r border-slate-200 flex flex-col shrink-0 no-print z-40`}
+          mobileMenuOpen ? "fixed inset-y-0 left-0 z-50 shadow-2xl flex" : "hidden"
+        } md:static md:flex md:shadow-none w-72 bg-white border-r border-slate-200 flex-col shrink-0 no-print`}
       >
-        <div className="p-6 border-b border-slate-100 hidden md:flex items-center gap-3">
-          <div className="h-10 w-10 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-sm">
-            <Snowflake className="w-5 h-5" />
+        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-2xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shadow-sm">
+              <Snowflake className="w-5 h-5" />
+            </div>
+            <div>
+              <h1 className="text-base font-extrabold tracking-tight text-slate-900 leading-tight">
+                KoolSync
+              </h1>
+              <p className="text-[11px] text-blue-600 font-bold tracking-wide uppercase">Commercial AC CRM</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-base font-extrabold tracking-tight text-slate-900 leading-tight">
-              KoolSync
-            </h1>
-            <p className="text-[11px] text-blue-600 font-bold tracking-wide uppercase">Commercial AC CRM</p>
-          </div>
+          {/* Close button for mobile drawer */}
+          <button
+            onClick={() => setMobileMenuOpen(false)}
+            aria-label="Tutup menu navigasi"
+            className="md:hidden p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* User Card */}

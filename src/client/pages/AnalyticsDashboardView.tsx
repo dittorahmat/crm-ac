@@ -75,7 +75,7 @@ export function AnalyticsDashboardView() {
   }, []);
 
   return (
-    <main className="space-y-8 wrap">
+    <div className="space-y-8 wrap">
       {/* Hero Section with Real Commercial HVAC Imagery */}
       <section className="relative rounded-3xl overflow-hidden border border-slate-200 bg-white shadow-sm">
         <div className="absolute inset-0 z-0 opacity-10">
@@ -233,6 +233,6 @@ export function AnalyticsDashboardView() {
           ))}
         </div>
       </section>
-    </main>
+    </div>
   );
 }
