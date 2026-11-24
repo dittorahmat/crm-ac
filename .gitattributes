@@ -1,0 +1,5 @@
+# GitHub Linguist Configuration
+# Mark vendor/agent skills and generated assets so they don't skew repository language statistics
+.agents/** linguist-vendored
+.scratch/** linguist-vendored
+drizzle/** linguist-vendored

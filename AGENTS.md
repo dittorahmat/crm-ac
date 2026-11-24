@@ -40,7 +40,7 @@ bun run check
 This runs:
 1. `tsc --noEmit` (full backend and frontend static typecheck).
 2. `bun run check:glossary` (mechanical verification preventing banned terms like "client" / "klien" in both code and UI text).
-3. `bun run check:ui` (mechanical verification preventing legacy dark AI-slop tokens, non-existent Tailwind v4 classes, legacy neon glow classes `shadow-(teal|cyan)`, enforcing semantic `<section>` views, prohibiting nested `<main>` tags in views, and enforcing server fail-closed role resolution).
+3. `bun run check:ui` (mechanical verification preventing legacy dark AI-slop tokens, non-existent Tailwind v4 classes, legacy neon glow classes `shadow-(teal|cyan)`, enforcing semantic `<section>` views, prohibiting nested `<main>` tags in views, enforcing server fail-closed role resolution, prohibiting raw `.js`/`.jsx` files across project root/src/scripts, and asserting `.gitattributes` Linguist hygiene).
 4. `vite build` (bundle integrity check).
 
 To audit frontend design compliance with the taste-skill gate against a live dev server:
@@ -52,6 +52,10 @@ bun run taste:check
 
 - **Windows CLI Economy**: The host environment runs Windows PowerShell. Avoid assuming POSIX binary availability (e.g. `grep`, `sed`, `awk` via `rtk`). Use PowerShell native cmdlets (`Select-String`) or Bun/Node scripts for fast cross-file text scanning.
 - **Vite Host Binding on Windows**: Dev servers must bind explicitly to IPv4 (`127.0.0.1` or `--host 127.0.0.1`) to prevent Windows IPv6 dual-stack permission crashes (`EACCES ::1:3000`). Preconfigured in `vite.config.ts` and `package.json`.
+- **Pure TypeScript & Zero Raw JS Rule**: All application code, build scripts, and configuration files must be authored strictly in TypeScript (`.ts` / `.tsx`). Never introduce `.js` files in project source or root configurations (`tailwind.config.ts`, `vite.config.ts`).
+- **Clean Theme Configuration**: Theme configurations (`tailwind.config.ts`) must never introduce speculative, dead, or non-compliant tokens (e.g. neon cyberpunk glows `glow-cold`, non-standard color scales). Every theme token must directly serve active views and adhere strictly to the Clean B2B Field Service Standard.
+- **Atomic File Refactoring & Git Staging**: When migrating or refactoring configuration files (e.g. deleting `.js` and introducing `.ts`), never leave replacement files untracked while staging file deletions. Ensure all associated configurations, build files, and gitattributes are staged atomically.
+- **GitHub Linguist Hygiene (.gitattributes)**: Vendor artifacts, migration files, and agent skill templates (such as `.agents/**`, `drizzle/**`, `.scratch/**`) must be flagged with `linguist-vendored` in `.gitattributes` so that GitHub repository language statistics accurately reflect the primary TypeScript codebase rather than external template scripts. Ensure local scratch directories (`.scratch/`) are ignored in `.gitignore`.
 
 ## Agent Skills & Conventions
 
