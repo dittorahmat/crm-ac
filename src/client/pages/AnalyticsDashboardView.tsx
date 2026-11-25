@@ -116,11 +116,13 @@ export function AnalyticsDashboardView() {
 
       {/* Financial Overview Cards */}
       <section className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-600">
-            Metrik Finansial & Potensi Arus Kas
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-xs sm:text-sm font-bold uppercase tracking-wider text-slate-600">
+            Metrik Finansial & Arus Kas
           </h2>
-          <span className="text-xs text-blue-600 font-mono font-bold bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100">November 2026</span>
+          <span className="text-[11px] sm:text-xs text-blue-600 font-mono font-bold bg-blue-50 px-2.5 py-1 rounded-md border border-blue-100 shrink-0">
+            November 2026
+          </span>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
@@ -131,12 +133,12 @@ export function AnalyticsDashboardView() {
                 <TrendingUp className="w-3.5 h-3.5" /> +18.4%
               </span>
             </div>
-            <div className="text-3xl font-extrabold text-slate-900 font-mono tracking-tight">
+            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono tracking-tight">
               Rp 38.850.000
             </div>
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-              <span>Jasa Pembersihan: <strong className="text-slate-800">Rp 29.4M</strong></span>
-              <span>Suku Cadang & Freon: <strong className="text-slate-800">Rp 9.45M</strong></span>
+            <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs text-slate-500">
+              <span>Pembersihan: <strong className="text-slate-800">Rp 29.4M</strong></span>
+              <span>Sparepart: <strong className="text-slate-800">Rp 9.45M</strong></span>
             </div>
           </div>
 

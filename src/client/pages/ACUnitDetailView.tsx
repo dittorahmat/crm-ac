@@ -199,17 +199,17 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
   return (
     <div className="space-y-8">
       {/* Top Bar Navigation */}
-      <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200">
         <button
           onClick={onBack}
-          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-blue-600 transition-colors interactive-button"
+          className="inline-flex items-center gap-2 text-xs font-bold text-slate-700 hover:text-blue-600 transition-colors interactive-button min-h-[44px] py-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          Kembali ke Daftar Aset
+          <span>Kembali ke Daftar Aset</span>
         </button>
-        <span className="text-xs text-slate-500 font-mono flex items-center gap-2">
-          <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-          KoolSync Verified Digital Passport
+        <span className="text-[11px] sm:text-xs text-slate-500 font-mono flex items-center gap-1.5">
+          <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />
+          <span className="truncate">KoolSync Verified Digital Passport</span>
         </span>
       </div>
 
@@ -428,9 +428,9 @@ export function ACUnitDetailView({ assetTag, onBack }: ACUnitDetailProps) {
                     <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider mb-2 block">
                       Foto Bukti di R2 Storage:
                     </span>
-                    <div className="flex gap-3">
+                    <div className="grid grid-cols-2 sm:flex gap-3">
                       {history.evidencePhotos.map((photo: string, i: number) => (
-                        <div key={i} className="h-24 w-36 rounded-xl overflow-hidden border border-slate-200 relative group shadow-sm">
+                        <div key={i} className="h-24 w-full sm:w-36 rounded-xl overflow-hidden border border-slate-200 relative group shadow-sm">
                           <img src={photo} alt="Bukti" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
                           <span className="absolute bottom-1 left-1.5 px-2 py-0.5 bg-black/80 text-[10px] font-bold text-white rounded">
                             {i === 0 ? "Sebelum Cuci" : "Sesudah Cuci"}
