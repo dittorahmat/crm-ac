@@ -246,7 +246,7 @@ export function App() {
       )}
 
       {/* Semantic Main Content Area */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10 bg-slate-50 min-h-screen">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-10 pb-20 md:pb-6 bg-slate-50 min-h-screen">
         <div className="max-w-7xl mx-auto wrap">
           {activeTab === "dashboard" && (currentRole === "admin" ? <AnalyticsDashboardView /> : <FieldTrackingView initialUnitTag={inspectingTag} />)}
           {activeTab === "customers" && (currentRole === "admin" ? (
@@ -271,6 +271,85 @@ export function App() {
           )}
         </div>
       </main>
+
+      {/* Persistent Role-Adaptive Bottom Navigation Bar for Mobile */}
+      <nav 
+        aria-label="Navigasi Bawah Mobile" 
+        className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-3 py-1.5 flex items-center justify-around shadow-lg no-print"
+      >
+        {currentRole === "technician" ? (
+          <>
+            <button
+              onClick={() => setActiveTab("service_flow")}
+              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-colors ${
+                activeTab === "service_flow" ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              <ClipboardCheck className={`w-5 h-5 ${activeTab === "service_flow" ? "stroke-[2.5]" : ""}`} />
+              <span className="text-[10px] tracking-tight">Servis</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("schedules")}
+              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-colors ${
+                activeTab === "schedules" ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              <CalendarClock className={`w-5 h-5 ${activeTab === "schedules" ? "stroke-[2.5]" : ""}`} />
+              <span className="text-[10px] tracking-tight">Jadwal</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <button
+              onClick={() => setActiveTab("dashboard")}
+              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-colors ${
+                activeTab === "dashboard" ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              <BarChart3 className={`w-5 h-5 ${activeTab === "dashboard" ? "stroke-[2.5]" : ""}`} />
+              <span className="text-[10px] tracking-tight">Metrik</span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("schedules")}
+              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-colors ${
+                activeTab === "schedules" ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              <CalendarClock className={`w-5 h-5 ${activeTab === "schedules" ? "stroke-[2.5]" : ""}`} />
+              <span className="text-[10px] tracking-tight">Jadwal</span>
+            </button>
+          </>
+        )}
+
+        {/* Elevated Primary Scan Action */}
+        <button
+          onClick={() => setShowScanModal(true)}
+          aria-label="Pindai Barcode atau QR AC"
+          className="-mt-5 p-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/30 border-2 border-white flex items-center justify-center interactive-button active:scale-95 transition-transform"
+        >
+          <QrCode className="w-6 h-6 stroke-[2.2]" />
+        </button>
+
+        {currentRole === "technician" ? (
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-slate-500 hover:text-slate-900 transition-colors"
+          >
+            <User className="w-5 h-5" />
+            <span className="text-[10px] tracking-tight">Profil</span>
+          </button>
+        ) : (
+          <button
+            onClick={() => setMobileMenuOpen(true)}
+            className="flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-slate-500 hover:text-slate-900 transition-colors"
+          >
+            <Menu className="w-5 h-5" />
+            <span className="text-[10px] tracking-tight">Menu</span>
+          </button>
+        )}
+      </nav>
     </div>
   );
 }

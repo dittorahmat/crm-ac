@@ -287,17 +287,17 @@ export function CustomerAssetsView({ onInspectUnit }: { onInspectUnit?: (tag: st
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3 self-end sm:self-center">
-                  <div className="text-right hidden sm:block">
-                    <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                      Kondisi: {unit.lastHealthScore}% Prima
+                <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-200">
+                  <div className="text-left sm:text-right">
+                    <span className="text-[11px] px-2 py-0.5 rounded-full font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 inline-block">
+                      {unit.lastHealthScore}% Prima
                     </span>
-                    <p className="text-[10px] text-slate-500 mt-1">Siklus: Tiap {unit.serviceIntervalMonths} Bln</p>
+                    <p className="text-[10px] text-slate-500 mt-0.5">Siklus: Tiap {unit.serviceIntervalMonths} Bln</p>
                   </div>
 
                   <button
                     onClick={() => onInspectUnit && onInspectUnit(unit.assetTag)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold transition-all shadow-sm"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 text-xs font-bold transition-all shadow-sm active:scale-95"
                   >
                     <Eye className="w-3.5 h-3.5" />
                     Buka Riwayat
