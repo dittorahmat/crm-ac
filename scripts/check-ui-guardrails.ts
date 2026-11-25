@@ -116,13 +116,23 @@ function checkFrontendIntegrity(dir: string, violations: string[]) {
           );
         }
 
-        // Enforce 48px field touch target standards on stepper buttons in field flow
-        if (entry.name === "FieldTrackingView.tsx" && (line.includes("Kurangi ") || line.includes("Tambah "))) {
-          const surroundingBlock = lines.slice(Math.max(0, lineNum - 3), Math.min(lines.length, lineNum + 4)).join(" ");
-          if (!surroundingBlock.includes("min-w-[48px]") && !surroundingBlock.includes("w-12")) {
-            violations.push(
-              `${fullPath}:${lineNum + 1} - Field stepper action must maintain a minimum 48px touch target (w-12 h-12 or min-w-[48px] min-h-[48px]) per ADR-0008.`
-            );
+        // Enforce 48px field touch target standards on stepper and breadcrumb buttons in field flow
+        if (entry.name === "FieldTrackingView.tsx") {
+          if (line.includes("Kurangi ") || line.includes("Tambah ")) {
+            const surroundingBlock = lines.slice(Math.max(0, lineNum - 3), Math.min(lines.length, lineNum + 4)).join(" ");
+            if (!surroundingBlock.includes("min-w-[48px]") && !surroundingBlock.includes("w-12")) {
+              violations.push(
+                `${fullPath}:${lineNum + 1} - Field stepper action must maintain a minimum 48px touch target (w-12 h-12 or min-w-[48px] min-h-[48px]) per ADR-0008.`
+              );
+            }
+          }
+          if (line.includes("onClick={() => setStep(")) {
+            const surroundingBlock = lines.slice(Math.max(0, lineNum - 4), Math.min(lines.length, lineNum + 6)).join(" ");
+            if (!surroundingBlock.includes("min-h-[48px]")) {
+              violations.push(
+                `${fullPath}:${lineNum + 1} - Field tracking step tab button must maintain minimum 48px height (min-h-[48px]) per ADR-0008 & AGENTS.md.`
+              );
+            }
           }
         }
       });
@@ -203,8 +213,40 @@ function checkLinguistHygiene(violations: string[]) {
   }
 }
 
+// Mechanical check 3: Mobile bottom navigation symmetry and uniqueness
+function checkMobileNavigationUniqueness(violations: string[]) {
+  const appPath = path.resolve(process.cwd(), "src", "client", "App.tsx");
+  if (!fs.existsSync(appPath)) return;
+  const content = fs.readFileSync(appPath, "utf-8");
+
+  // Check if technician nav block has duplicate triggers
+  const techNavMatch = content.match(/userRole === "technician" \? \(([\s\S]*?)\) : \(/);
+  if (techNavMatch) {
+    const techBlock = techNavMatch[1];
+    const scanTriggers = (techBlock.match(/setShowScanModal\(true\)/g) || []).length;
+    if (scanTriggers > 1) {
+      violations.push(
+        `${appPath} - Duplicate scan action trigger in technician mobile bottom bar. Bottom bar must contain unique operational targets per slot.`
+      );
+    }
+  }
+
+  // Check if admin nav block has duplicate triggers
+  const adminNavMatch = content.match(/\) : \(([\s\S]*?)\)\s*<\s*\/nav>/);
+  if (adminNavMatch) {
+    const adminBlock = adminNavMatch[1];
+    const scanTriggers = (adminBlock.match(/setShowScanModal\(true\)/g) || []).length;
+    if (scanTriggers > 1) {
+      violations.push(
+        `${appPath} - Duplicate scan action trigger in admin mobile bottom bar. Bottom bar must contain unique operational targets per slot.`
+      );
+    }
+  }
+}
+
 checkPureTypeScript(violations);
 checkLinguistHygiene(violations);
+checkMobileNavigationUniqueness(violations);
 checkFrontendIntegrity(path.resolve(process.cwd(), "src", "client"), violations);
 checkServerSecurity(path.resolve(process.cwd(), "src", "server"), violations);
 
