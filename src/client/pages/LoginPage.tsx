@@ -87,17 +87,17 @@ export function LoginPage({ onLoginSuccess }: { onLoginSuccess: (user?: UserSess
             </span>
             <span className="text-[10px] text-blue-700 bg-white px-2 py-0.5 rounded-full border border-blue-200 font-medium">Mode Uji Coba</span>
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <button
               type="button"
               onClick={() => handleQuickLogin("admin")}
-              className="p-2.5 bg-white hover:bg-blue-600 hover:text-white border border-blue-300 rounded-lg text-left transition-all interactive-card shadow-sm group"
+              className="p-3 min-h-[48px] bg-white hover:bg-blue-600 hover:text-white border border-blue-300 rounded-xl text-left transition-all interactive-card shadow-sm group active:scale-95"
             >
-              <div className="text-xs font-bold text-slate-900 group-hover:text-white flex items-center gap-1">
-                <UserCheck className="w-3.5 h-3.5 text-blue-600 group-hover:text-white" />
-                Admin Kantor
+              <div className="text-xs font-bold text-slate-900 group-hover:text-white flex items-center gap-1.5">
+                <UserCheck className="w-4 h-4 text-blue-600 group-hover:text-white shrink-0" />
+                <span>Admin Kantor</span>
               </div>
-              <div className="text-[10px] text-slate-500 group-hover:text-blue-100 mt-0.5 truncate">
+              <div className="text-[11px] text-slate-500 group-hover:text-blue-100 mt-0.5 truncate">
                 admin@koolsync.com
               </div>
             </button>
@@ -105,13 +105,13 @@ export function LoginPage({ onLoginSuccess }: { onLoginSuccess: (user?: UserSess
             <button
               type="button"
               onClick={() => handleQuickLogin("technician")}
-              className="p-2.5 bg-white hover:bg-blue-600 hover:text-white border border-blue-300 rounded-lg text-left transition-all interactive-card shadow-sm group"
+              className="p-3 min-h-[48px] bg-white hover:bg-blue-600 hover:text-white border border-blue-300 rounded-xl text-left transition-all interactive-card shadow-sm group active:scale-95"
             >
-              <div className="text-xs font-bold text-slate-900 group-hover:text-white flex items-center gap-1">
-                <Wrench className="w-3.5 h-3.5 text-blue-600 group-hover:text-white" />
-                Teknisi Lapangan
+              <div className="text-xs font-bold text-slate-900 group-hover:text-white flex items-center gap-1.5">
+                <Wrench className="w-4 h-4 text-blue-600 group-hover:text-white shrink-0" />
+                <span>Teknisi Lapangan</span>
               </div>
-              <div className="text-[10px] text-slate-500 group-hover:text-blue-100 mt-0.5 truncate">
+              <div className="text-[11px] text-slate-500 group-hover:text-blue-100 mt-0.5 truncate">
                 fajar.tech@koolsync.com
               </div>
             </button>
@@ -131,9 +131,9 @@ export function LoginPage({ onLoginSuccess }: { onLoginSuccess: (user?: UserSess
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3.5 mt-2">
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Email Kantor / Teknisi</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Email Kantor / Teknisi</label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -142,13 +142,13 @@ export function LoginPage({ onLoginSuccess }: { onLoginSuccess: (user?: UserSess
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="admin@koolsync.com"
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                className="w-full min-h-[44px] pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-700 mb-1">Kata Sandi</label>
+            <label className="block text-xs font-semibold text-slate-700 mb-1.5">Kata Sandi</label>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
               <input
@@ -157,7 +157,7 @@ export function LoginPage({ onLoginSuccess }: { onLoginSuccess: (user?: UserSess
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 placeholder="demo12345"
-                className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
+                className="w-full min-h-[44px] pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-blue-500 focus:bg-white transition-all"
               />
             </div>
           </div>
@@ -165,7 +165,7 @@ export function LoginPage({ onLoginSuccess }: { onLoginSuccess: (user?: UserSess
           <button
             type="submit"
             disabled={loading}
-            className="w-full mt-2 py-2.5 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-semibold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            className="w-full min-h-[48px] mt-2 py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white font-bold text-xs transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
             {loading ? "Memverifikasi..." : "Masuk ke Sistem"}
             {!loading && <ArrowRight className="w-4 h-4" />}

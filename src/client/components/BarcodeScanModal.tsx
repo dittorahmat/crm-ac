@@ -185,17 +185,17 @@ export function BarcodeScanModal({ isOpen, onClose, onSelectTag, userRole = "adm
     >
       <div className="bg-white border border-slate-200 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
         {/* Modal Header */}
-        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+        <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
+            <div className="h-9 w-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600 shrink-0">
               <Camera className="w-5 h-5" />
             </div>
             <div>
-              <h3 id="barcode-scanner-title" className="text-base font-bold text-slate-900 tracking-tight">
-                Scan Barcode & QR Code Unit AC
+              <h3 id="barcode-scanner-title" className="text-sm sm:text-base font-bold text-slate-900 tracking-tight">
+                Scan Barcode / QR AC
               </h3>
-              <p className="text-xs text-slate-500">
-                Arahkan kamera ke stiker Tom & Jerry unit AC atau pilih dari database D1
+              <p className="text-[11px] sm:text-xs text-slate-500 line-clamp-1">
+                Kamera Tom & Jerry atau database D1
               </p>
             </div>
           </div>
@@ -204,36 +204,37 @@ export function BarcodeScanModal({ isOpen, onClose, onSelectTag, userRole = "adm
               stopScanner();
               onClose();
             }}
-            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+            aria-label="Tutup pemindai barcode"
+            className="min-w-[44px] min-h-[44px] p-2.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 flex items-center justify-center transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Mode Toggle Bar */}
-        <div className="px-5 pt-4 pb-2">
-          <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-xl text-xs font-semibold">
+        <div className="px-4 sm:px-5 pt-3 pb-2">
+          <div className="grid grid-cols-2 p-1 bg-slate-100 rounded-xl text-xs font-semibold gap-1">
             <button
               onClick={() => setActiveMode("camera")}
-              className={`py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition-all ${
+              className={`min-h-[44px] py-2 px-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
                 activeMode === "camera"
                   ? "bg-white text-blue-600 shadow-sm font-bold"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <Camera className="w-4 h-4" />
-              <span>Kamera Riil (Live Scan)</span>
+              <Camera className="w-4 h-4 shrink-0" />
+              <span className="truncate">Kamera Langsung</span>
             </button>
             <button
               onClick={() => setActiveMode("picker")}
-              className={`py-2 px-3 rounded-lg flex items-center justify-center gap-2 transition-all ${
+              className={`min-h-[44px] py-2 px-2 rounded-lg flex items-center justify-center gap-1.5 transition-all ${
                 activeMode === "picker"
                   ? "bg-white text-blue-600 shadow-sm font-bold"
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <Layers className="w-4 h-4" />
-              <span>Database AC D1 ({units.length})</span>
+              <Layers className="w-4 h-4 shrink-0" />
+              <span className="truncate">Database D1 ({units.length})</span>
             </button>
           </div>
         </div>
@@ -338,14 +339,14 @@ export function BarcodeScanModal({ isOpen, onClose, onSelectTag, userRole = "adm
         </div>
 
         {/* Modal Footer */}
-        <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span>Target Routing: <strong>{userRole === "technician" ? "Alur Servis Lapangan" : "Paspor Detail AC"}</strong></span>
+        <div className="p-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+          <span className="text-center sm:text-left">Target: <strong>{userRole === "technician" ? "Alur Servis Lapangan" : "Paspor Detail AC"}</strong></span>
           <button
             onClick={() => {
               stopScanner();
               onClose();
             }}
-            className="px-4 py-2 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-semibold rounded-xl transition-colors shadow-sm"
+            className="w-full sm:w-auto min-h-[44px] px-6 py-2.5 bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold rounded-xl transition-colors shadow-sm"
           >
             Tutup
           </button>

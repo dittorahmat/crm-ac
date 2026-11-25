@@ -162,7 +162,7 @@ export function SystemSettingsView() {
                 placeholder={settings.hasMetaToken ? "Token tersimpan (biarkan kosong jika tidak diubah)" : "EAAG..."}
                 value={settings.metaWaToken}
                 onChange={(e) => setSettings({ ...settings, metaWaToken: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-500 focus:bg-white"
+                className="w-full min-h-[44px] px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-500 focus:bg-white"
               />
               <span className="text-[10px] text-slate-400 mt-1 block">
                 Token resmi WhatsApp Business Platform dari Meta Developer Dashboard
@@ -185,7 +185,7 @@ export function SystemSettingsView() {
                 placeholder="104928172635489"
                 value={settings.metaPhoneNumberId}
                 onChange={(e) => setSettings({ ...settings, metaPhoneNumberId: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-500 focus:bg-white"
+                className="w-full min-h-[44px] px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-500 focus:bg-white"
               />
               <span className="text-[10px] text-slate-400 mt-1 block">
                 ID nomor telepon WhatsApp Business yang terdaftar di Meta
@@ -208,7 +208,7 @@ export function SystemSettingsView() {
                 placeholder={settings.hasFonnteToken ? "Token tersimpan (biarkan kosong jika tidak diubah)" : "Token API Fonnte"}
                 value={settings.fonnteToken}
                 onChange={(e) => setSettings({ ...settings, fonnteToken: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-500 focus:bg-white"
+                className="w-full min-h-[44px] px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-500 focus:bg-white"
               />
               <span className="text-[10px] text-slate-400 mt-1 block">
                 Digunakan otomatis saat Meta Cloud API mengalami rate-limit atau template belum diapprove
@@ -240,7 +240,7 @@ export function SystemSettingsView() {
               placeholder={settings.hasResendApiKey ? "API key tersimpan (biarkan kosong jika tidak diubah)" : "re_123456789..."}
               value={settings.resendApiKey}
               onChange={(e) => setSettings({ ...settings, resendApiKey: e.target.value })}
-              className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-500 focus:bg-white"
+              className="w-full min-h-[44px] px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-mono focus:outline-none focus:border-blue-500 focus:bg-white"
             />
             <span className="text-[10px] text-slate-400 mt-1 block">
               Kunci API dari Resend.com untuk otomatisasi pengiriman faktur tagihan servis AC ke email PIC
@@ -253,7 +253,7 @@ export function SystemSettingsView() {
           <button
             type="submit"
             disabled={saving}
-            className="px-6 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-2 shadow-sm disabled:opacity-50"
+            className="w-full sm:w-auto min-h-[48px] px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm disabled:opacity-50 active:scale-95 transition-all"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
             Simpan Konfigurasi ke D1
@@ -287,13 +287,13 @@ export function SystemSettingsView() {
                 value={testPhone}
                 onChange={(e) => setTestPhone(e.target.value)}
                 placeholder="0812xxxxxxxx"
-                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-mono text-slate-900 mt-1"
+                className="w-full min-h-[44px] px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-mono text-slate-900 mt-1"
               />
             </div>
             <button
               onClick={handleTestWhatsApp}
               disabled={testingWa}
-              className="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+              className="w-full min-h-[44px] py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 active:scale-95 transition-all"
             >
               {testingWa ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               Kirim Pesan Uji Coba WhatsApp
@@ -321,13 +321,13 @@ export function SystemSettingsView() {
                 value={testEmail}
                 onChange={(e) => setTestEmail(e.target.value)}
                 placeholder="admin@perusahaan.com"
-                className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 mt-1"
+                className="w-full min-h-[44px] px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-900 mt-1"
               />
             </div>
             <button
               onClick={handleTestEmail}
               disabled={testingEmail}
-              className="w-full py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50"
+              className="w-full min-h-[44px] py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 shadow-sm disabled:opacity-50 active:scale-95 transition-all"
             >
               {testingEmail ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
               Kirim Email Uji Coba Resend

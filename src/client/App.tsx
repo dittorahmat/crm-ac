@@ -108,7 +108,7 @@ export function App() {
   return (
     <div className="min-h-screen flex flex-col md:flex-row bg-slate-50 text-slate-900">
       {/* Mobile Topbar */}
-      <header className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between no-print sticky top-0 z-50 shadow-sm">
+      <header className="md:hidden bg-white border-b border-slate-200 p-4 flex items-center justify-between no-print sticky top-0 z-40 shadow-sm">
         <div className="flex items-center gap-2.5">
           <div className="h-9 w-9 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center text-blue-600">
             <Snowflake className="w-5 h-5" />
@@ -120,7 +120,8 @@ export function App() {
         </div>
         <button
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="p-2 rounded-lg bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900"
+          aria-label={mobileMenuOpen ? "Tutup menu" : "Buka menu navigasi"}
+          className="min-w-[44px] min-h-[44px] p-2.5 rounded-xl bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center active:scale-95 transition-all"
         >
           {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
         </button>
@@ -133,7 +134,7 @@ export function App() {
           aria-modal="true"
           aria-label="Navigasi Menu Mobile"
           onClick={() => setMobileMenuOpen(false)}
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden transition-opacity"
+          className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 md:hidden transition-opacity"
         />
       )}
 
@@ -159,7 +160,7 @@ export function App() {
           <button
             onClick={() => setMobileMenuOpen(false)}
             aria-label="Tutup menu navigasi"
-            className="md:hidden p-2 rounded-lg text-slate-500 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+            className="md:hidden min-w-[44px] min-h-[44px] p-2 rounded-xl text-slate-500 hover:text-slate-800 hover:bg-slate-100 flex items-center justify-center transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
@@ -174,7 +175,7 @@ export function App() {
             <p className="text-xs font-bold text-slate-900 truncate">{user.name}</p>
             <div className="flex items-center gap-1.5 mt-0.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] uppercase font-mono font-semibold text-slate-500">
+              <span className="text-[10px] uppercase font-mono font-semibold text-slate-500 truncate">
                 {user.role} • Cloudflare Edge
               </span>
             </div>
@@ -213,8 +214,11 @@ export function App() {
             <span>Digital Asset Passport</span>
           </div>
           <button
-            onClick={() => setShowScanModal(true)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 border border-blue-700 text-xs font-bold text-white interactive-button transition-all shadow-sm"
+            onClick={() => {
+              setShowScanModal(true);
+              setMobileMenuOpen(false);
+            }}
+            className="w-full min-h-[44px] flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 border border-blue-700 text-xs font-bold text-white interactive-button transition-all shadow-sm"
           >
             <QrCode className="w-4 h-4" />
             <span>Pindai Barcode / QR AC</span>
@@ -225,7 +229,7 @@ export function App() {
         <div className="p-4 border-t border-slate-100">
           <button
             onClick={() => setUser(null)}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
+            className="w-full min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
           >
             <LogOut className="w-4 h-4" />
             <span>Keluar Sistem</span>
@@ -272,16 +276,16 @@ export function App() {
         </div>
       </main>
 
-      {/* Persistent Role-Adaptive Bottom Navigation Bar for Mobile */}
+      {/* Persistent Role-Adaptive Bottom Navigation Bar for Mobile (Symmetrically Balanced Grid) */}
       <nav 
         aria-label="Navigasi Bawah Mobile" 
-        className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-3 py-1.5 flex items-center justify-around shadow-lg no-print"
+        className="md:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur-md border-t border-slate-200 z-40 px-2 py-1.5 grid grid-cols-5 items-center shadow-lg no-print"
       >
         {currentRole === "technician" ? (
           <>
             <button
               onClick={() => setActiveTab("service_flow")}
-              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-colors ${
+              className={`flex flex-col items-center justify-center gap-1 py-1 px-1 rounded-xl transition-colors ${
                 activeTab === "service_flow" ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-900"
               }`}
             >
@@ -291,19 +295,51 @@ export function App() {
 
             <button
               onClick={() => setActiveTab("schedules")}
-              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-colors ${
+              className={`flex flex-col items-center justify-center gap-1 py-1 px-1 rounded-xl transition-colors ${
                 activeTab === "schedules" ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-900"
               }`}
             >
               <CalendarClock className={`w-5 h-5 ${activeTab === "schedules" ? "stroke-[2.5]" : ""}`} />
               <span className="text-[10px] tracking-tight">Jadwal</span>
             </button>
+
+            {/* Elevated Primary Scan Action (Strictly Centered in Col 3) */}
+            <div className="flex justify-center items-center">
+              <button
+                onClick={() => setShowScanModal(true)}
+                aria-label="Pindai Barcode atau QR AC"
+                className="-mt-6 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/30 border-2 border-white flex items-center justify-center interactive-button active:scale-95 transition-transform"
+              >
+                <QrCode className="w-6 h-6 stroke-[2.2]" />
+              </button>
+            </div>
+
+            <button
+              onClick={() => {
+                setActiveTab("unit_detail");
+                setMobileMenuOpen(false);
+              }}
+              className={`flex flex-col items-center justify-center gap-1 py-1 px-1 rounded-xl transition-colors ${
+                activeTab === "unit_detail" ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              <FileText className={`w-5 h-5 ${activeTab === "unit_detail" ? "stroke-[2.5]" : ""}`} />
+              <span className="text-[10px] tracking-tight">Paspor</span>
+            </button>
+
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="flex flex-col items-center justify-center gap-1 py-1 px-1 rounded-xl text-slate-500 hover:text-slate-900 transition-colors"
+            >
+              <User className="w-5 h-5" />
+              <span className="text-[10px] tracking-tight">Profil</span>
+            </button>
           </>
         ) : (
           <>
             <button
               onClick={() => setActiveTab("dashboard")}
-              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-colors ${
+              className={`flex flex-col items-center justify-center gap-1 py-1 px-1 rounded-xl transition-colors ${
                 activeTab === "dashboard" ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-900"
               }`}
             >
@@ -313,41 +349,43 @@ export function App() {
 
             <button
               onClick={() => setActiveTab("schedules")}
-              className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl transition-colors ${
+              className={`flex flex-col items-center justify-center gap-1 py-1 px-1 rounded-xl transition-colors ${
                 activeTab === "schedules" ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-900"
               }`}
             >
               <CalendarClock className={`w-5 h-5 ${activeTab === "schedules" ? "stroke-[2.5]" : ""}`} />
               <span className="text-[10px] tracking-tight">Jadwal</span>
             </button>
+
+            {/* Elevated Primary Scan Action (Strictly Centered in Col 3) */}
+            <div className="flex justify-center items-center">
+              <button
+                onClick={() => setShowScanModal(true)}
+                aria-label="Pindai Barcode atau QR AC"
+                className="-mt-6 w-12 h-12 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/30 border-2 border-white flex items-center justify-center interactive-button active:scale-95 transition-transform"
+              >
+                <QrCode className="w-6 h-6 stroke-[2.2]" />
+              </button>
+            </div>
+
+            <button
+              onClick={() => setActiveTab("customers")}
+              className={`flex flex-col items-center justify-center gap-1 py-1 px-1 rounded-xl transition-colors ${
+                activeTab === "customers" ? "text-blue-600 font-bold" : "text-slate-500 hover:text-slate-900"
+              }`}
+            >
+              <Building2 className={`w-5 h-5 ${activeTab === "customers" ? "stroke-[2.5]" : ""}`} />
+              <span className="text-[10px] tracking-tight">Aset</span>
+            </button>
+
+            <button
+              onClick={() => setMobileMenuOpen(true)}
+              className="flex flex-col items-center justify-center gap-1 py-1 px-1 rounded-xl text-slate-500 hover:text-slate-900 transition-colors"
+            >
+              <Menu className="w-5 h-5" />
+              <span className="text-[10px] tracking-tight">Menu</span>
+            </button>
           </>
-        )}
-
-        {/* Elevated Primary Scan Action */}
-        <button
-          onClick={() => setShowScanModal(true)}
-          aria-label="Pindai Barcode atau QR AC"
-          className="-mt-5 p-3 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-md shadow-blue-500/30 border-2 border-white flex items-center justify-center interactive-button active:scale-95 transition-transform"
-        >
-          <QrCode className="w-6 h-6 stroke-[2.2]" />
-        </button>
-
-        {currentRole === "technician" ? (
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-slate-500 hover:text-slate-900 transition-colors"
-          >
-            <User className="w-5 h-5" />
-            <span className="text-[10px] tracking-tight">Profil</span>
-          </button>
-        ) : (
-          <button
-            onClick={() => setMobileMenuOpen(true)}
-            className="flex flex-col items-center gap-1 py-1 px-2.5 rounded-xl text-slate-500 hover:text-slate-900 transition-colors"
-          >
-            <Menu className="w-5 h-5" />
-            <span className="text-[10px] tracking-tight">Menu</span>
-          </button>
         )}
       </nav>
     </div>
