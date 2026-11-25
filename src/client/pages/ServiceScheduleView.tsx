@@ -221,22 +221,32 @@ export function ServiceScheduleView() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-3 self-end lg:self-center">
+              <div className="flex items-center gap-3 w-full lg:w-auto justify-end pt-3 lg:pt-0 border-t lg:border-t-0 border-slate-200">
                 {order.status === "SCHEDULED" && (
                   <button
                     onClick={() => {
                       setSelectedOrderId(order.id);
                       setShowDispatchModal(true);
                     }}
-                    className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-sm"
+                    className="w-full sm:w-auto min-h-[48px] px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95"
                   >
-                    <UserCheck className="w-3.5 h-3.5" />
+                    <UserCheck className="w-4 h-4" />
                     Tugaskan Teknisi
                   </button>
                 )}
                 {order.status === "DISPATCHED" && (
-                  <span className="text-xs text-slate-500 italic">
+                  <span className="text-xs text-slate-500 italic py-2">
                     Menunggu teknisi check-in di lokasi
+                  </span>
+                )}
+                {order.status === "IN_PROGRESS" && (
+                  <span className="text-xs text-blue-600 font-semibold py-2">
+                    Sedang dikerjakan teknisi
+                  </span>
+                )}
+                {order.status === "COMPLETED" && (
+                  <span className="text-xs text-emerald-600 font-semibold py-2">
+                    Servis selesai tervalidasi
                   </span>
                 )}
               </div>

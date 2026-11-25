@@ -115,7 +115,26 @@ function checkFrontendIntegrity(dir: string, violations: string[]) {
             `${fullPath}:${lineNum + 1} - Modal/Dialog overlay (fixed inset-0) is missing accessible 'role="dialog"' attribute.`
           );
         }
+
+        // Enforce 48px field touch target standards on stepper buttons in field flow
+        if (entry.name === "FieldTrackingView.tsx" && (line.includes("Kurangi ") || line.includes("Tambah "))) {
+          const surroundingBlock = lines.slice(Math.max(0, lineNum - 3), Math.min(lines.length, lineNum + 4)).join(" ");
+          if (!surroundingBlock.includes("min-w-[48px]") && !surroundingBlock.includes("w-12")) {
+            violations.push(
+              `${fullPath}:${lineNum + 1} - Field stepper action must maintain a minimum 48px touch target (w-12 h-12 or min-w-[48px] min-h-[48px]) per ADR-0008.`
+            );
+          }
+        }
       });
+
+      // Enforce numerical keypad optimization in field telemetry inputs
+      if (entry.name === "FieldTrackingView.tsx") {
+        if (!content.includes('inputMode="decimal"')) {
+          violations.push(
+            `${fullPath} - Field telemetry forms must specify inputMode="decimal" to invoke numeric mobile keypads per ADR-0008.`
+          );
+        }
+      }
 
       // Semantic check: Major views in pages/ must contain semantic <section> tag and must NOT declare nested <main>
       if (fullPath.includes(path.join("pages")) && entry.name.endsWith("View.tsx")) {

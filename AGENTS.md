@@ -8,6 +8,7 @@ Instructions and configuration for AI agents working in this repository.
 - **R2 Storage Patterns**: `evidence/{serviceOrderId}/{acUnitId}/{evidenceType}_{timestamp}.webp` and `invoices/{invoiceNumber}.html`. See `docs/adr/0003-service-evidence-and-asset-tag-printing.md`.
 - **Barcode & QR Camera Scanner**: WebRTC camera scanner with Tom & Jerry physical label alignment, audio/haptic feedback, and D1 asset picker fallback. See `docs/adr/0007-real-camera-barcode-and-qr-scanner.md`.
 - **WhatsApp Gateway**: Official Meta Cloud API with Fonnte/Waha resilient fallback. See `docs/adr/0002-whatsapp-adapter-and-fallback.md`.
+- **Mobile-Responsive Field Experience**: Persistent role-adaptive bottom navigation bar, minimum 48px field touch targets, full-screen digital signature dialog, and stacked card view transformations. See `docs/adr/0008-mobile-responsive-field-experience.md`.
 - **Gateway Settings & Notifications**: Credentials resolve via `getSystemSettings(db, env)` with D1 precedence, and emails via `sendTransactionalEmail`. See `docs/adr/0006-gateway-settings-and-notification-pipeline.md`.
 - **Auth & RBAC**: Better-Auth with D1 adapter, enforcing `admin` and `technician` roles. See `docs/adr/0004-better-auth-on-cloudflare-d1.md` and `docs/adr/0005-role-based-access-control.md`.
   - **Fail-Closed RBAC Principle**: Role resolution MUST fail closed (`403 Forbidden` if missing or unverified). Never fall back to default roles (e.g. `user.role || 'technician'`) or mock elevated `admin` privileges in production authentication callbacks.
@@ -28,8 +29,13 @@ Whenever creating, restyling, or extending frontend components, agents MUST foll
    - The top-level application shell (`App.tsx`) provides the single primary `<main className="... wrap">` container wrapping all dynamic views.
    - Individual view components (`src/client/pages/*View.tsx`) must NEVER declare nested `<main>` tags (which violates HTML5 landmark specifications). Instead, views must use `<div className="space-y-* wrap">` with nested semantic `<section>` blocks for each logical module card.
    - Mobile drawers and dialogs MUST provide an accessible backdrop overlay (`fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40`) with `role="dialog"` / `aria-modal="true"`, an explicit close button (`<X />`), and click-outside dismissal behavior.
-6. **Domain Vocabulary Compliance**: Respect canonical domain terms from `GLOSSARY.md` (e.g. use `Zone` or `Ruang`, avoid `Area` or `Compartment`; use `Customer` never `Client`/`Klien`; `ACUnit` never `Device`; `ServiceOrder` never `Task`).
-7. **Physical Label Printing**: Die-cut sticker sheets (Tom & Jerry #108 / #103) strictly require `@page { size: A4; margin: 0 !important; }` and zero body padding in print media to ensure exact physical alignment.
+6. **Mobile Field Ergonomics & Touch Standards**:
+   - Touch targets for interactive buttons, steppers, and field actions must maintain a minimum bounding box of 48x48px (`min-w-[48px] min-h-[48px]`) to accommodate field technicians operating with work gloves.
+   - Numerical telemetry inputs must specify `inputMode="decimal"` to automatically invoke optimized numeric mobile keypads.
+   - Data tables on small viewports (`< 768px`) must transform into stacked touch cards (`sm:hidden`) displaying key operational information, preventing two-axis scrolling.
+   - Digital signature capturing on mobile viewports must provide an unconstrained dedicated modal dialog with exact canvas scaling mathematics (`canvas.width / rect.width`) and `touch-action: none` to prevent scroll interference and offset coordinates.
+7. **Domain Vocabulary Compliance**: Respect canonical domain terms from `GLOSSARY.md` (e.g. use `Zone` or `Ruang`, avoid `Area` or `Compartment`; use `Customer` never `Client`/`Klien`; `ACUnit` never `Device`; `ServiceOrder` never `Task`).
+8. **Physical Label Printing**: Die-cut sticker sheets (Tom & Jerry #108 / #103) strictly require `@page { size: A4; margin: 0 !important; }` and zero body padding in print media to ensure exact physical alignment.
 
 ## Guardrails & Verification Suite
 
@@ -40,7 +46,7 @@ bun run check
 This runs:
 1. `tsc --noEmit` (full backend and frontend static typecheck).
 2. `bun run check:glossary` (mechanical verification preventing banned terms like "client" / "klien" in both code and UI text).
-3. `bun run check:ui` (mechanical verification preventing legacy dark AI-slop tokens, non-existent Tailwind v4 classes, legacy neon glow classes `shadow-(teal|cyan)`, enforcing semantic `<section>` views, prohibiting nested `<main>` tags in views, enforcing server fail-closed role resolution, prohibiting raw `.js`/`.jsx` files across project root/src/scripts, and asserting `.gitattributes` Linguist hygiene).
+3. `bun run check:ui` (mechanical verification preventing legacy dark AI-slop tokens, non-existent Tailwind v4 classes, legacy neon glow classes `shadow-(teal|cyan)`, enforcing semantic `<section>` views, prohibiting nested `<main>` tags in views, enforcing minimum 48px touch targets on field steppers & `inputMode="decimal"` on telemetry inputs, enforcing server fail-closed role resolution, prohibiting raw `.js`/`.jsx` files across project root/src/scripts, and asserting `.gitattributes` Linguist hygiene).
 4. `vite build` (bundle integrity check).
 
 To audit frontend design compliance with the taste-skill gate against a live dev server:

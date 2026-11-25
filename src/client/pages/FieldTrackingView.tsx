@@ -11,11 +11,89 @@ import {
   QrCode,
   ShieldCheck,
   Star,
-  Loader2
+  Loader2,
+  Maximize2,
+  X
 } from "lucide-react";
 
 interface FieldTrackingViewProps {
   initialUnitTag?: string;
+}
+
+// Reusable Touch-Optimized Number Stepper Input (Min 48px touch targets)
+interface NumberStepperInputProps {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  step: number;
+  decimals?: number;
+  highlight?: boolean;
+}
+
+function NumberStepperInput({
+  label,
+  value,
+  onChange,
+  step,
+  decimals = 0,
+  highlight = false,
+}: NumberStepperInputProps) {
+  const handleStep = (direction: 1 | -1) => {
+    const current = parseFloat(value) || 0;
+    const next = Math.max(0, current + direction * step);
+    onChange(decimals > 0 ? next.toFixed(decimals) : String(Math.round(next)));
+  };
+
+  return (
+    <div>
+      <label className="text-[10px] text-slate-500 font-medium">{label}</label>
+      <div className="flex items-center gap-2 mt-1">
+        <input
+          type="text"
+          inputMode="decimal"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={`w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-blue-500 min-h-[48px] ${
+            highlight ? "text-blue-600 font-bold" : "text-slate-900"
+          }`}
+        />
+        <div className="flex gap-1.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => handleStep(-1)}
+            aria-label={`Kurangi ${label}`}
+            className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 flex items-center justify-center font-bold text-lg shadow-sm active:scale-95 transition-all"
+          >
+            -
+          </button>
+          <button
+            type="button"
+            onClick={() => handleStep(1)}
+            aria-label={`Tambah ${label}`}
+            className="w-12 h-12 min-w-[48px] min-h-[48px] rounded-xl bg-white border border-slate-200 text-slate-700 hover:bg-slate-100 flex items-center justify-center font-bold text-lg shadow-sm active:scale-95 transition-all"
+          >
+            +
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Canvas touch/mouse coordinate helper with scale compensation
+function getCanvasCoordinates(
+  e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>,
+  canvas: HTMLCanvasElement
+) {
+  const rect = canvas.getBoundingClientRect();
+  const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+  const clientY = "touches" in e ? e.touches[0].clientY : e.clientY;
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+  return {
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY,
+  };
 }
 
 export function FieldTrackingView({ initialUnitTag }: FieldTrackingViewProps = {}) {
@@ -49,7 +127,9 @@ export function FieldTrackingView({ initialUnitTag }: FieldTrackingViewProps = {
   const [signerName, setSignerName] = useState("Bpk. Rahmat (PIC Gedung)");
   const [signed, setSigned] = useState(false);
   const [submittingFinal, setSubmittingFinal] = useState(false);
+  const [showFullSignatureModal, setShowFullSignatureModal] = useState(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const modalCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const isDrawingRef = useRef(false);
 
   // Load active service order and service items from D1
@@ -121,31 +201,31 @@ export function FieldTrackingView({ initialUnitTag }: FieldTrackingViewProps = {
     }
   };
 
-  // Canvas drawing handlers
-  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
+  // Canvas drawing handlers with scaling compensation
+  const startDrawing = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>,
+    targetCanvas: HTMLCanvasElement | null = canvasRef.current
+  ) => {
     isDrawingRef.current = true;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+    if (!targetCanvas) return;
+    const ctx = targetCanvas.getContext("2d");
     if (!ctx) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = ("touches" in e) ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-    const y = ("touches" in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
+    const { x, y } = getCanvasCoordinates(e, targetCanvas);
     ctx.beginPath();
     ctx.moveTo(x, y);
   };
 
-  const draw = (e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDrawingRef.current) return;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+  const draw = (
+    e: React.MouseEvent<HTMLCanvasElement> | React.TouchEvent<HTMLCanvasElement>,
+    targetCanvas: HTMLCanvasElement | null = canvasRef.current
+  ) => {
+    if (!isDrawingRef.current || !targetCanvas) return;
+    const ctx = targetCanvas.getContext("2d");
     if (!ctx) return;
-    const rect = canvas.getBoundingClientRect();
-    const x = ("touches" in e) ? e.touches[0].clientX - rect.left : e.clientX - rect.left;
-    const y = ("touches" in e) ? e.touches[0].clientY - rect.top : e.clientY - rect.top;
-    ctx.lineWidth = 2.5;
+    const { x, y } = getCanvasCoordinates(e, targetCanvas);
+    ctx.lineWidth = 3;
     ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.strokeStyle = "#1d4ed8";
     ctx.lineTo(x, y);
     ctx.stroke();
@@ -156,12 +236,11 @@ export function FieldTrackingView({ initialUnitTag }: FieldTrackingViewProps = {
     isDrawingRef.current = false;
   };
 
-  const clearCanvas = () => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
+  const clearCanvas = (targetCanvas: HTMLCanvasElement | null = canvasRef.current) => {
+    if (!targetCanvas) return;
+    const ctx = targetCanvas.getContext("2d");
     if (!ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.clearRect(0, 0, targetCanvas.width, targetCanvas.height);
     setSigned(false);
   };
 
@@ -409,81 +488,77 @@ export function FieldTrackingView({ initialUnitTag }: FieldTrackingViewProps = {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* PSI Pressure */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-              <div className="flex items-center gap-2 text-blue-600 text-xs font-bold">
-                <Gauge className="w-4 h-4" />
-                Tekanan Freon (PSI)
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between text-blue-600 text-xs font-bold">
+                <span className="flex items-center gap-1.5">
+                  <Gauge className="w-4 h-4" />
+                  Tekanan Freon (PSI)
+                </span>
+                <span className="text-[10px] bg-blue-100/70 text-blue-700 px-1.5 py-0.5 rounded font-mono">R32 / R410A</span>
               </div>
-              <div>
-                <label className="text-[10px] text-slate-500">Sebelum Servis</label>
-                <input
-                  type="text"
-                  value={beforePsi}
-                  onChange={(e) => setBeforePsi(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-slate-500">Sesudah Servis</label>
-                <input
-                  type="text"
-                  value={afterPsi}
-                  onChange={(e) => setAfterPsi(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-blue-600 font-bold"
-                />
-              </div>
+              <NumberStepperInput
+                label="Sebelum Servis"
+                value={beforePsi}
+                onChange={setBeforePsi}
+                step={5}
+              />
+              <NumberStepperInput
+                label="Sesudah Servis"
+                value={afterPsi}
+                onChange={setAfterPsi}
+                step={5}
+                highlight
+              />
             </div>
 
             {/* Current Ampere */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-              <div className="flex items-center gap-2 text-amber-400 text-xs font-bold">
-                <Zap className="w-4 h-4" />
-                Beban Arus (Ampere)
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between text-amber-500 text-xs font-bold">
+                <span className="flex items-center gap-1.5">
+                  <Zap className="w-4 h-4" />
+                  Beban Arus (Ampere)
+                </span>
+                <span className="text-[10px] bg-amber-100/70 text-amber-700 px-1.5 py-0.5 rounded font-mono">Clamp Meter</span>
               </div>
-              <div>
-                <label className="text-[10px] text-slate-500">Sebelum Servis</label>
-                <input
-                  type="text"
-                  value={beforeAmp}
-                  onChange={(e) => setBeforeAmp(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-slate-500">Sesudah Servis</label>
-                <input
-                  type="text"
-                  value={afterAmp}
-                  onChange={(e) => setAfterAmp(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-blue-600 font-bold"
-                />
-              </div>
+              <NumberStepperInput
+                label="Sebelum Servis"
+                value={beforeAmp}
+                onChange={setBeforeAmp}
+                step={0.2}
+                decimals={1}
+              />
+              <NumberStepperInput
+                label="Sesudah Servis"
+                value={afterAmp}
+                onChange={setAfterAmp}
+                step={0.2}
+                decimals={1}
+                highlight
+              />
             </div>
 
             {/* Temperature */}
-            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-3">
-              <div className="flex items-center gap-2 text-blue-400 text-xs font-bold">
-                <Thermometer className="w-4 h-4" />
-                Suhu Hembusan (°C)
+            <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-4">
+              <div className="flex items-center justify-between text-blue-600 text-xs font-bold">
+                <span className="flex items-center gap-1.5">
+                  <Thermometer className="w-4 h-4" />
+                  Suhu Hembusan (°C)
+                </span>
+                <span className="text-[10px] bg-blue-100/70 text-blue-700 px-1.5 py-0.5 rounded font-mono">Anemometer</span>
               </div>
-              <div>
-                <label className="text-[10px] text-slate-500">Sebelum Servis</label>
-                <input
-                  type="text"
-                  value={beforeTemp}
-                  onChange={(e) => setBeforeTemp(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-slate-900"
-                />
-              </div>
-              <div>
-                <label className="text-[10px] text-slate-500">Sesudah Servis</label>
-                <input
-                  type="text"
-                  value={afterTemp}
-                  onChange={(e) => setAfterTemp(e.target.value)}
-                  className="w-full px-2.5 py-1.5 bg-white border border-slate-200 rounded-lg text-xs text-blue-600 font-bold"
-                />
-              </div>
+              <NumberStepperInput
+                label="Sebelum Servis"
+                value={beforeTemp}
+                onChange={setBeforeTemp}
+                step={1}
+              />
+              <NumberStepperInput
+                label="Sesudah Servis"
+                value={afterTemp}
+                onChange={setAfterTemp}
+                step={1}
+                highlight
+              />
             </div>
           </div>
 
@@ -534,13 +609,23 @@ export function FieldTrackingView({ initialUnitTag }: FieldTrackingViewProps = {
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-semibold text-slate-700">Tanda Tangan PIC Pelanggan:</span>
-                <button
-                  type="button"
-                  onClick={clearCanvas}
-                  className="text-[11px] font-bold text-red-600 hover:text-red-700"
-                >
-                  Hapus Tanda Tangan
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowFullSignatureModal(true)}
+                    className="text-[11px] font-bold text-blue-600 hover:text-blue-700 sm:hidden flex items-center gap-1"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    Layar Penuh
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => clearCanvas(canvasRef.current)}
+                    className="text-[11px] font-bold text-red-600 hover:text-red-700"
+                  >
+                    Hapus
+                  </button>
+                </div>
               </div>
 
               <div className="bg-white border border-slate-300 rounded-xl overflow-hidden shadow-inner">
@@ -548,19 +633,93 @@ export function FieldTrackingView({ initialUnitTag }: FieldTrackingViewProps = {
                   ref={canvasRef}
                   width={600}
                   height={160}
-                  onMouseDown={startDrawing}
-                  onMouseMove={draw}
+                  onMouseDown={(e) => startDrawing(e, canvasRef.current)}
+                  onMouseMove={(e) => draw(e, canvasRef.current)}
                   onMouseUp={stopDrawing}
                   onMouseLeave={stopDrawing}
-                  onTouchStart={startDrawing}
-                  onTouchMove={draw}
+                  onTouchStart={(e) => startDrawing(e, canvasRef.current)}
+                  onTouchMove={(e) => draw(e, canvasRef.current)}
                   onTouchEnd={stopDrawing}
                   className="w-full h-36 touch-none cursor-crosshair bg-white"
                 />
               </div>
-              <p className="text-[10px] text-slate-500 text-center">Goreskan tanda tangan di atas kotak putih</p>
+              <p className="text-[10px] text-slate-500 text-center">Goreskan tanda tangan di atas kotak putih (atau buka Layar Penuh di HP)</p>
             </div>
           </div>
+
+          {/* Fullscreen Dedicated Signature Modal for Mobile */}
+          {showFullSignatureModal && (
+            <div
+              role="dialog"
+              aria-modal="true"
+              aria-label="Modal Tanda Tangan Digital Layar Penuh"
+              className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex flex-col justify-end sm:justify-center p-0 sm:p-4 animate-in fade-in"
+            >
+              <div className="bg-white w-full max-w-xl mx-auto rounded-t-3xl sm:rounded-2xl p-5 shadow-2xl flex flex-col gap-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-2">
+                    <PenTool className="w-5 h-5 text-blue-600" />
+                    <h4 className="text-sm font-bold text-slate-900">Tanda Tangan Digital PIC (Layar Penuh)</h4>
+                  </div>
+                  <button
+                    onClick={() => setShowFullSignatureModal(false)}
+                    className="p-2 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+
+                <div className="bg-slate-50 p-2 rounded-2xl border border-slate-200">
+                  <canvas
+                    ref={modalCanvasRef}
+                    width={700}
+                    height={260}
+                    onMouseDown={(e) => startDrawing(e, modalCanvasRef.current)}
+                    onMouseMove={(e) => draw(e, modalCanvasRef.current)}
+                    onMouseUp={stopDrawing}
+                    onMouseLeave={stopDrawing}
+                    onTouchStart={(e) => startDrawing(e, modalCanvasRef.current)}
+                    onTouchMove={(e) => draw(e, modalCanvasRef.current)}
+                    onTouchEnd={stopDrawing}
+                    className="w-full h-56 touch-none cursor-crosshair bg-white rounded-xl border border-slate-300 shadow-inner"
+                  />
+                  <p className="text-[11px] text-slate-500 text-center mt-2">
+                    Goreskan tanda tangan PIC pada kanvas leluasa di atas
+                  </p>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => clearCanvas(modalCanvasRef.current)}
+                    className="min-h-[48px] px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-100 text-xs font-bold"
+                  >
+                    Hapus
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Copy modal canvas to main canvas
+                      const modalCanvas = modalCanvasRef.current;
+                      const mainCanvas = canvasRef.current;
+                      if (modalCanvas && mainCanvas) {
+                        const mainCtx = mainCanvas.getContext("2d");
+                        if (mainCtx) {
+                          mainCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
+                          mainCtx.drawImage(modalCanvas, 0, 0, mainCanvas.width, mainCanvas.height);
+                          setSigned(true);
+                        }
+                      }
+                      setShowFullSignatureModal(false);
+                    }}
+                    className="min-h-[48px] flex-1 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-sm active:scale-95"
+                  >
+                    Simpan Tanda Tangan
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-between pt-2">
             <button
