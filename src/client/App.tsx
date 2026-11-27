@@ -228,7 +228,10 @@ export function App() {
         {/* Bottom Logout */}
         <div className="p-4 border-t border-slate-100">
           <button
-            onClick={() => setUser(null)}
+            onClick={() => {
+              setMobileMenuOpen(false);
+              setUser(null);
+            }}
             className="w-full min-h-[44px] flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-slate-500 hover:text-red-600 hover:bg-red-50 transition-colors"
           >
             <LogOut className="w-4 h-4" />

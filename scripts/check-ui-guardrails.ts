@@ -144,6 +144,11 @@ function checkFrontendIntegrity(dir: string, violations: string[]) {
             `${fullPath} - Field telemetry forms must specify inputMode="decimal" to invoke numeric mobile keypads per ADR-0008.`
           );
         }
+        if (/(?:beforePhoto|afterPhoto)[^;]*useState[^(]*\(\s*["']https?:\/\//.test(content)) {
+          violations.push(
+            `${fullPath} - Field evidence upload states (beforePhoto, afterPhoto) must initialize to null instead of fragile external URLs (violates AGENTS.md Rule 4).`
+          );
+        }
       }
 
       // Semantic check: Major views in pages/ must contain semantic <section> tag and must NOT declare nested <main>
