@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1 --port 5173",
+    "dev": "bun run scripts/dev.ts",
+    "dev:client": "vite --host 127.0.0.1 --port 5173",
+    "dev:worker": "wrangler dev --port 8787",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "check:glossary": "bun run scripts/check-glossary.ts",

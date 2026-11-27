@@ -118,8 +118,8 @@ export function FieldTrackingView({ initialUnitTag }: FieldTrackingViewProps = {
   const [afterTemp, setAfterTemp] = useState("16");
 
   // Photos
-  const [beforePhoto, setBeforePhoto] = useState<string | null>("https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80");
-  const [afterPhoto, setAfterPhoto] = useState<string | null>("https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&w=600&q=80");
+  const [beforePhoto, setBeforePhoto] = useState<string | null>(null);
+  const [afterPhoto, setAfterPhoto] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string>("Siap Sinkron R2");
 
